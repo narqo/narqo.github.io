@@ -1,0 +1,76 @@
+==================================================================
+https://keybase.io/varankinv
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://vladimir.varank.in
+  * I am varankinv (https://keybase.io/varankinv) on keybase.
+  * I have a public key with fingerprint 37C2 3158 1FF2 5364 2DC7  C8A0 B07F 1A7E 292C 4038
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0120cbbebe5aba1701c478d62c6e361b203c2af8d2a7d0977973d476462fb4c283e60a",
+      "fingerprint": "37c231581ff253642dc7c8a0b07f1a7e292c4038",
+      "host": "keybase.io",
+      "key_id": "b07f1a7e292c4038",
+      "kid": "01016f831bca321674ce09550a8219d43a3cec6f5aa8ec3e2e86fe730d1d53b72aba0a",
+      "uid": "d71475895ef2809df8c68074c24a9a19",
+      "username": "varankinv"
+    },
+    "service": {
+      "hostname": "vladimir.varank.in",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 1
+  },
+  "ctime": 1562622224,
+  "expire_in": 157680000,
+  "prev": "cfe03cfd339c9d9a8c6a9990cbddecc5b36548237fb6c7b988af50f8be9eeda3",
+  "seqno": 8,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.1.0
+Comment: https://keybase.io/crypto
+
+yMN4AnicbVJtUFRVGF6QRJCQrxAsUa47YyTi/f5YkkQSpi8xpBBhw3PPPZe9fOxu
+uwu20IK5WrIQFSrGgEKF5iRGBohU5AgIjogKbsMPZwochymDEQdyaJqguxT/ev+c
+Oe95nuc870ffk8s0/l7flK8pi4ndxnsNXjlVpNFv6AoqxUSTZMd0pVg+WjxQgYSs
+tpx8RcJ0GE6QOBRFJCIGiIDgcALSHC+xJGQRxRIiiVOQBDIvkYCTcIHjBI6SaI6l
+WVIWaUjyFGJxgMVismLMRRazRTHaVFmKgyRFMDwhyyRDsTQpQQ7yABdxTiYAh0iB
+hDRO8SrRYLJ6GKo5EVhRnGJSc+olZ9He/+CXfOMEK/MUIUJAkQTL0RDhAsPggCcJ
+QaIpQEEEWZkBgEeQQiTiWRlxFC4REkOJHKlWu+i7aFFO4giaY3iBQTLJ44Ik85Dl
+cVWUpIEACMEDtCKLERQiFV0MLMCYrxiLMUcspqaLFYg8nfWUsgQpAJJSqFji/sXG
+KUZVwmwx2UzQVKC+G2w2s1Xn4dvsZg9hPxJz/pPKERWjpLZTZRQji1UxGTEdoSKh
+TfFoEwxLsqQadCyG3jErFpSjeBAMp1pWw/MPKlYloYzU6ckSRQlQkASg1gQEQVDn
+LUkIQkakWIbmSYqTRRZyosDzQGZwmReRgJAEKMxT3NtGE6bjVZsgV5W0KrlGYCuy
+IMzRcyXbR+Plr1n+hLdnzTT+fkFLy6fgq/4OS9uuf+P5A2Do3vsDwkVr0LXOrYHR
+B0NPBt50Xiqb6XVGvjuSHO82r8YfnCKaG5vqT1zX/4klth6bqHrx1cd77ZE1Q/Gx
+VZPTuz9Im9pJuc/P1qUfDTnb+NuPF/q927863q+f37e5Y3v7TWvGg1S/Zw3R0R/q
+JocyQrIl18c92HlqcL7hXOh3bx1Ibznmjrq0kt81V+u/5fboqkznyOz+sRAhKSwg
+6oXhTyKWVV+trHe3aLsKM6e+PuJrHHZuS6wfu33yL+m0+3F4WNvpHVnZ+amBjkfD
+uzfOdNQErP1Ws2E0Zbz8TGpW8CuJltasMq48rzfUP6ZvIGJsCm0UDuLBRzbN0Bl3
+H2a+drSx6tGesrXaZ5q95zpya/JK0oPhzIn3tCVp5y5HLhTtza+PzxxwuU3PJXxW
+4O2TdNiwY6Ezbu7lOftERsiUtXZ8ZcXq+ewEw5bayzHrQiprhV914Z3pvX3RNoe0
+xic8JnWiXO8qudN6o7u58doXpj8C0j9dyGqYXjGZsu+w62LihabxNO3OTWMVX97d
+tf5e3X3f9qdKJk0Jr/9+1TmlXw6T2+raXHf4vLMr9niXOhv8XN3anp/wH9ra1r0U
+NfHLbMT3h/rWD/Y1f4Qextw4nnTdaejvsleP2Kfdt7amOG9VDFaa72s/fzovObul
+KSxls8NBROED3T3VP/uOsmcK3jwk/APwNrzI
+=r49S
+-----END PGP MESSAGE-----
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/varankinv
+
+==================================================================
+
