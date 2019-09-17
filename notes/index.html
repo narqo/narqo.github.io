@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Notes - Vladimir Varankin</title>
+    <style>
+    body {
+        font-family: Georgia, serif;
+        font-size: 16px;
+        line-height: 1.45;
+    }
+    .main-nav a {
+        margin-left: 0.5em;
+    }
+    .main-nav a:first-child {
+        margin-left: 0;
+    }
+    .main {
+        max-width: 900px
+    }
+    </style>
+</head>
+<body>
+<nav class="main-nav">
+    <a href="/">Vladimir Varankin</a>,
+    <a href="/notes">Notes</a>,
+    <a href="https://github.com/narqo">GitHub</a>,
+    <a href="https://twitter.com/tvii">Twitter</a>,
+    <a href="https://keybase.io/varankinv">Keybase</a>
+</nav>
+<main class="main">
+
+<header>
+    <h1>Notes</h1>
+</header>
+
+<article class="text" data-weight="0">
+    <header class="text-hdr">
+        <h2><a href="/notes/2019/09/go-http-headers/">Go&#39;s net/http.Headers</a></h2>
+    </header>
+    
+    <p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with
+some additional methods.</p>
+
+<p>A usual way to initialise and populate such data-structure from
+an external representation would be something like that:</p>
+
+<pre><code class="language-go">type Header map[string][]string
+
+func (h Header) Add(key, val string) {
+    if val == &quot;&quot; {
+        return
+    }
+    h[key] = append(h[key], val)
+}
+
+func main() {
+    h := make(Header)
+    h.Add(&quot;Host&quot;, &quot;example.com&quot;)
+    h.Add(&quot;Via&quot;, &quot;a.example.com&quot;)
+    h.Add(&quot;Via&quot;, &quot;b.example.com&quot;)
+}
+</code></pre>
+
+<p>From the code above, one can notice that we allocated a new slice of strings for every
+unique key that we added to headers. For things like HTTP headers, that’re automatically
+parsed for every incoming request, this bunch of tiny allocations is something we’d like
+to avoid.</p>
+
+<p>I was curious to know if Go’s standard library cares about that.</p>
+
+<p>Looking at the implementation of <a href="https://golang.org/pkg/net/textproto/#Reader.ReadMIMEHeader"><code>net/textproto.Reader.ReadMIMEHeader()</code></a>, that std’s
+HTTP server uses, and Go 1.13’s new <a href="https://golang.org/pkg/net/http/#Header.Clone"><code>net/http.Header.Copy()</code></a>, it turned out they solve
+it quit elegantly.</p>
+
+<p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where
+most of the keys have a single value. Instead of allocating a separate slice for a unique
+key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice
+for all keys.</p>
+
+<p>With that, we can refactore the initial <code>Header.add</code> as the following:</p>
+
+<pre><code class="language-go">type Header map[string][]string
+
+func (h Header) add(vv []string, key, val string) []string {
+    if val == &quot;&quot; { ··· }
+
+    // fast path for KV pair of a single value
+    if h[key] == nil {
+        vv = append(vv, value)
+        h[key] = vv[:1:1]
+        return vv[1:]
+    }
+
+    // slow path, when KV pair has two or more values
+    h[key] = append(h[key], val)
+    return vv
+}
+
+func main() {
+    h := make(Header)
+    // net/textprotocol pre-counts total number of request's headers to allocate the slice of known capacity
+    vv := make([]string, 0)
+
+    vv = h.add(vv, &quot;Host&quot;, &quot;example.com&quot;)
+    vv = h.add(vv, &quot;Via&quot;, &quot;a.example.com&quot;)
+}
+</code></pre>
+
+<p>Note, that we use <code>v[:1:1]</code> to make a <a href="https://golang.org/ref/spec#Slice_expressions">subslice of the fixed capacity</a> (length 1, capacity 1).
+If there will be a KV-pair that has several values, e.g. &ldquo;Via&rdquo; header, <code>Add</code>
+will have to allocate a separate slice for that key with doubled capacity (and copied
+values of this key, of course).</p>
+
+    
+    <footer class="text-meta"><time>2019-09-04</time></footer>
+</article>
+
+<article class="text" data-weight="0">
+    <header class="text-hdr">
+        <h2><a href="/notes/2019/09/hello-world/">Hello World</a></h2>
+    </header>
+    
+    <p>Let&rsquo;s create a blog. But let&rsquo;s call it &ldquo;notes&rdquo;.</p>
+
+<p>Because sometimes there are thoughts I want to share with the you. Some of them might even be larger than a tweet.</p>
+
+    
+    <footer class="text-meta"><time>2019-09-01</time></footer>
+</article>
+
+
+</main>
+</body>
+</html>
