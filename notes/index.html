@@ -44,11 +44,7 @@
         <h2><a href="/notes/2019/09/go-http-headers/">Go&#39;s net/http.Headers</a></h2>
     </header>
     
-    <p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with
-some additional methods.</p>
-
-<p>A usual way to initialise and populate such data-structure from
-an external representation would be something like that:</p>
+    <p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with extra specific methods. A usual way to initialise and populate such data-structure from an external representation is something like that:</p>
 
 <pre><code class="language-go">type Header map[string][]string
 
@@ -67,23 +63,16 @@ func main() {
 }
 </code></pre>
 
-<p>From the code above, one can notice that we allocated a new slice of strings for every
-unique key that we added to headers. For things like HTTP headers, that’re automatically
-parsed for every incoming request, this bunch of tiny allocations is something we’d like
-to avoid.</p>
+<p>From the code above, one can notice that we allocated a new slice of strings for every unique key that we added to headers. For things like HTTP headers, that&rsquo;re automatically parsed for every incoming request, this bunch of tiny allocations is something we&rsquo;d like to avoid.</p>
 
-<p>I was curious to know if Go’s standard library cares about that.</p>
+<p>I was curious to know if Go&rsquo;s standard library cares about that.</p>
 
-<p>Looking at the implementation of <a href="https://golang.org/pkg/net/textproto/#Reader.ReadMIMEHeader"><code>net/textproto.Reader.ReadMIMEHeader()</code></a>, that std’s
-HTTP server uses, and Go 1.13’s new <a href="https://golang.org/pkg/net/http/#Header.Clone"><code>net/http.Header.Copy()</code></a>, it turned out they solve
-it quit elegantly.</p>
+<p>Looking at the implementation of <a href="https://golang.org/pkg/net/textproto/#Reader.ReadMIMEHeader"><code>net/textproto.Reader.ReadMIMEHeader()</code></a>, which&rsquo;s used in the standard
+HTTP server, or Go 1.13’s new <a href="https://golang.org/pkg/net/http/#Header.Clone"><code>net/http.Header.Copy()</code></a>, it turned out they solve the problem quit elegantly.</p>
 
-<p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where
-most of the keys have a single value. Instead of allocating a separate slice for a unique
-key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice
-for all keys.</p>
+<p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.</p>
 
-<p>With that, we can refactore the initial <code>Header.add</code> as the following:</p>
+<p>Knowing that, we can refactor the initial <code>Header.Add</code> as the following:</p>
 
 <pre><code class="language-go">type Header map[string][]string
 
@@ -112,10 +101,9 @@ func main() {
 }
 </code></pre>
 
-<p>Note, that we use <code>v[:1:1]</code> to make a <a href="https://golang.org/ref/spec#Slice_expressions">subslice of the fixed capacity</a> (length 1, capacity 1).
-If there will be a KV-pair that has several values, e.g. &ldquo;Via&rdquo; header, <code>Add</code>
-will have to allocate a separate slice for that key with doubled capacity (and copied
-values of this key, of course).</p>
+<p>Note that we use <code>vv[:1:1]</code> to create a <a href="https://golang.org/ref/spec#Slice_expressions">subslice of the fixed capacity</a> (length 1, capacity 1).</p>
+
+<p>If there is a KV-pair that has several values, e.g. &ldquo;Via&rdquo; header, <code>Add</code> will allocate a separate slice for that key, doubling its capacity.</p>
 
     
     <footer class="text-meta"><time>2019-09-04</time></footer>
