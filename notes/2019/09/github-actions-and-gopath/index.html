@@ -26,5 +26,5 @@ jobs:
         env:
           GOPATH: ${{ runner.workspace }}
 </code></pre><p>Note, how <code>actions/checkout@v1</code> above uses custom <code>path</code> input parameter. I set the path to <code>./src/github.com/${{ github.repository }}</code>, so the project is checked out to <code>src</code> directory in the runners&rsquo;s workspace, which I later pass as the value of <code>GOPATH</code> to the &ldquo;make test&rdquo; step. The leading dot in <code>./src</code> seems very important — I&rsquo;ve spent the majority of the time trying to figure out that part — refer to <a href=https://github.com/actions/checkout/issues/41>this issue</a>.</p><p><a href=https://github.com/profefe/profefe/actions>See the workflow in action</a>.</p><p>To learn more about those <code>${{ ··· }}</code> &ldquo;macroses&rdquo; I suggest looking at the Actions&rsquo; &ldquo;<a href=https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions>Contexts and expression syntax</a>&rdquo; documentation.</p><footer class=article-meta><time datetime=2019-09-19T12:00:00Z>September 19, 2019</time>
-<span class=tag>golang</span>
+<span class=tag>go</span>
 <span class=tag>github actions</span></footer></main><footer class=main-footer>© 2019 VLDMR</footer></body></html>

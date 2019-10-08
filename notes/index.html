@@ -2,7 +2,44 @@
 <a href=/notes class=item-current>Notes</a>
 <a href=https://github.com/narqo>GitHub</a>
 <a href=https://twitter.com/tvii>Twitter</a>
-<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Notes</h1></header><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/github-actions-and-gopath/>Github Actions and GOPATH</a></h2></header><p>The other day I received my beta access to <a href=https://github.com/features/actions>GitHub Actions</a>. To try them out I picked an existing pet project and created a <em>workflow</em> using a Go project template provided by GitHub. As it&rsquo;s in <em>September 2019</em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.</p><p>My project is a <em>classic Go service</em> ;) meaning: it uses vendoring and doesn&rsquo;t use Go modules. So no need for &ldquo;get dependencies&rdquo; step. And it requires to be inside the <code>GOPATH</code>. With that, the provided workflow needed some adjustment.</p><p>After some trials and errors, I&rsquo;ve managed to make <code>checkout</code> step to clone the repo into the correct destination inside the <code>GOPATH</code>. Here is the final workflow:</p><pre><code class=language-yaml>name: Run Go test
+<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Notes</h1></header><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/10/go-http-headers/>[]byte to string conversion</a></h2></header><p>Go has an old wiki page, titled &ldquo;<a href=https://github.com/golang/go/wiki/CompilerOptimizations>Compiler And Runtime Optimizations</a>&rdquo;.</p><p>The part I like most there is different cases where compiler doesn&rsquo;t allocate memory for <code>string</code> to <code>[]byte</code> conversions:</p><blockquote><p>For a map m of type <code>map[string]T</code> and <code>[]byte b</code>, <code>m[string(b)]</code> doesn&rsquo;t allocate (the temporary string copy of the byte slice isn&rsquo;t made)</p></blockquote><p>Turned out, since this wiki page was written, more similar optimisations were added to the compiler.</p><p>As of Go 1.12+ the following cases are also listed in <a href=https://github.com/golang/go/blob/release-branch.go1.12/src/runtime/string.go#L128-L153><code>runtime/string.go</code></a>:</p><ul><li>Strings comcatenation</li></ul><p>For the case <code>&quot;&lt;&quot; + string(b) + &quot;&gt;&quot;</code>, where <code>b</code> is <code>[]byte</code> no extra copying of <code>b</code> is needed.</p><ul><li><p>Comparison</p><pre><code>if string(b) == &quot;foo&quot; { ··· }
+</code></pre></li></ul><p>In the code above, <code>b []byte</code> also won&rsquo;t be copied.</p><hr><p>There are still cases where compiler can&rsquo;t optimise the code for us. In some of those cases
+it&rsquo;s fine to do string to bytes conversion using a so called &ldquo;<code>unsafe</code> trick&rdquo; (accessing string&rsquo;s underling
+data directly, with out copying the data from string to bytes and vice versa). One can find several
+ways of performing the trick, but none of them seems &ldquo;the one that must be used&rdquo;.</p><p>After years of episodic discussions, a collegue of mine assembled the list of different conserns and about
+the proper way of doing it (<em>see &ldquo;<a href=https://groups.google.com/d/topic/golang-nuts/Zsfk-VMd_fU/discussion>unsafe conversion between string &lt;-&gt; []byte</a>&rdquo; topic on golang-nuts forum</em>).
+Thanks to replies from Go team, our most valid way of doing it is following:</p><pre><code class=language-go>// Refer to github.com/fmstephe/unsafeutil
+
+type stringHeader struct {
+	data      unsafe.Pointer
+	stringLen int
+}
+
+type sliceHeader struct {
+	data     unsafe.Pointer
+	sliceLen int
+	sliceCap int
+}
+
+func StringToBytes(s string) (b []byte) {
+	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;s))
+	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;b))
+	sliceHeader.data = stringHeader.data
+	sliceHeader.sliceLen = len(s)
+	sliceHeader.sliceCap = len(s)
+	return b
+}
+
+func BytesToString(b []byte) (s string) {
+	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;b))
+	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;s))
+	stringHeader.data = sliceHeader.data
+	stringHeader.stringLen = len(b)
+	return s
+}
+</code></pre><footer class=article-meta><time datetime=2019-10-08T12:00:00Z>October 8, 2019</time>
+<span class=tag>go</span>
+<span class=tag>µ-benchmarks</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/github-actions-and-gopath/>Github Actions and GOPATH</a></h2></header><p>The other day I received my beta access to <a href=https://github.com/features/actions>GitHub Actions</a>. To try them out I picked an existing pet project and created a <em>workflow</em> using a Go project template provided by GitHub. As it&rsquo;s in <em>September 2019</em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.</p><p>My project is a <em>classic Go service</em> ;) meaning: it uses vendoring and doesn&rsquo;t use Go modules. So no need for &ldquo;get dependencies&rdquo; step. And it requires to be inside the <code>GOPATH</code>. With that, the provided workflow needed some adjustment.</p><p>After some trials and errors, I&rsquo;ve managed to make <code>checkout</code> step to clone the repo into the correct destination inside the <code>GOPATH</code>. Here is the final workflow:</p><pre><code class=language-yaml>name: Run Go test
 on: [pull_request]
 jobs:
   test:
@@ -26,7 +63,7 @@ jobs:
         env:
           GOPATH: ${{ runner.workspace }}
 </code></pre><p>Note, how <code>actions/checkout@v1</code> above uses custom <code>path</code> input parameter. I set the path to <code>./src/github.com/${{ github.repository }}</code>, so the project is checked out to <code>src</code> directory in the runners&rsquo;s workspace, which I later pass as the value of <code>GOPATH</code> to the &ldquo;make test&rdquo; step. The leading dot in <code>./src</code> seems very important — I&rsquo;ve spent the majority of the time trying to figure out that part — refer to <a href=https://github.com/actions/checkout/issues/41>this issue</a>.</p><p><a href=https://github.com/profefe/profefe/actions>See the workflow in action</a>.</p><p>To learn more about those <code>${{ ··· }}</code> &ldquo;macroses&rdquo; I suggest looking at the Actions&rsquo; &ldquo;<a href=https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions>Contexts and expression syntax</a>&rdquo; documentation.</p><footer class=article-meta><time datetime=2019-09-19T12:00:00Z>September 19, 2019</time>
-<span class=tag>golang</span>
+<span class=tag>go</span>
 <span class=tag>github actions</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/go-http-headers/>Go&#39;s net/http.Headers</a></h2></header><p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with extra specific methods. A usual way to initialise and populate such data-structure from an external representation is something like that:</p><pre><code class=language-go>type Header map[string][]string
 
 func (h Header) Add(key, val string) {
@@ -70,4 +107,5 @@ func main() {
     vv = h.add(vv, &quot;Via&quot;, &quot;a.example.com&quot;)
 }
 </code></pre><p>Note that we use <code>vv[:1:1]</code> to create a <a href=https://golang.org/ref/spec#Slice_expressions>subslice of the fixed capacity</a> (length 1, capacity 1).</p><p>If there is a KV-pair that has several values, e.g. &ldquo;Via&rdquo; header, <code>Add</code> will allocate a separate slice for that key, doubling its capacity.</p><footer class=article-meta><time datetime=2019-09-04T12:00:00Z>September 4, 2019</time>
-<span class=tag>golang</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/hello-world/>Hello World</a></h2></header><p>Let&rsquo;s create a blog. But let&rsquo;s call them &ldquo;notes&rdquo;.</p><p>Because sometimes there are thoughts I want to share with you. Some of them might even be larger than a tweet.</p><footer class=article-meta><time datetime=2019-09-01T12:00:00Z>September 1, 2019</time></footer></article></main><footer class=main-footer>© 2019 VLDMR</footer></body></html>
+<span class=tag>go</span>
+<span class=tag>µ-benchmarks</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/hello-world/>Hello World</a></h2></header><p>Let&rsquo;s create a blog. But let&rsquo;s call them &ldquo;notes&rdquo;.</p><p>Because sometimes there are thoughts I want to share with you. Some of them might even be larger than a tweet.</p><footer class=article-meta><time datetime=2019-09-01T12:00:00Z>September 1, 2019</time></footer></article></main><footer class=main-footer>© 2019 VLDMR</footer></body></html>
