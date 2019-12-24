@@ -2,13 +2,13 @@
 <a href=/notes>Notes</a>
 <a href=https://github.com/narqo>GitHub</a>
 <a href=https://twitter.com/tvii>Twitter</a>
-<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Github Actions and GOPATH</h1></header><p>The other day I received my beta access to <a href=https://github.com/features/actions>GitHub Actions</a>. To try them out I picked an existing pet project and created a <em>workflow</em> using a Go project template provided by GitHub. As it&rsquo;s in <em>September 2019</em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.</p><p>My project is a <em>classic Go service</em> ;) meaning: it uses vendoring and doesn&rsquo;t use Go modules. So no need for &ldquo;get dependencies&rdquo; step. And it requires to be inside the <code>GOPATH</code>. With that, the provided workflow needed some adjustment.</p><p>After some trials and errors, I&rsquo;ve managed to make <code>checkout</code> step to clone the repo into the correct destination inside the <code>GOPATH</code>. Here is the final workflow:</p><pre><code class=language-yaml>name: Run Go test
+<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Github Actions and GOPATH</h1></header><p>The other day I received my beta access to <a href=https://github.com/features/actions>GitHub Actions</a>. To try them out I picked an existing pet project and created a <em>workflow</em> using a Go project template provided by GitHub. As it's in <em>September 2019</em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.</p><p>My project is a <em>classic Go service</em> ;) meaning: it uses vendoring and doesn't use Go modules. So no need for &ldquo;get dependencies&rdquo; step. And it requires to be inside the <code>GOPATH</code>. With that, the provided workflow needed some adjustment.</p><p>After some trials and errors, I've managed to make <code>checkout</code> step to clone the repo into the correct destination inside the <code>GOPATH</code>. Here is the final workflow:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml>name: Run Go test
 on: [pull_request]
 jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.12.9]
+        go-version: [<span style=color:#ae81ff>1.12</span><span style=color:#ae81ff>.9</span>]
 
     runs-on: ubuntu-latest
 
@@ -20,9 +20,9 @@ jobs:
       - uses: actions/checkout@v1
         with:
           path: ./src/github.com/${{ github.repository }}
-          fetch-depth: 5
+          fetch-depth: <span style=color:#ae81ff>5</span>
 
       - run: make test
         env:
           GOPATH: ${{ runner.workspace }}
-</code></pre><p>Note, how <code>actions/checkout@v1</code> above uses custom <code>path</code> input parameter. I set the path to <code>./src/github.com/${{ github.repository }}</code>, so the project is checked out to <code>src</code> directory in the runners&rsquo;s workspace, which I later pass as the value of <code>GOPATH</code> to the &ldquo;make test&rdquo; step. The leading dot in <code>./src</code> seems very important — I&rsquo;ve spent the majority of the time trying to figure out that part — refer to <a href=https://github.com/actions/checkout/issues/41>this issue</a>.</p><p><a href=https://github.com/profefe/profefe/actions>See the workflow in action</a>.</p><p>To learn more about those <code>${{ ··· }}</code> &ldquo;macroses&rdquo; I suggest looking at the Actions&rsquo; &ldquo;<a href=https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions>Contexts and expression syntax</a>&rdquo; documentation.</p><footer class=article-meta><time datetime=2019-09-19T12:00:00Z>September 19, 2019</time><span class=tag>go</span><span class=tag>github actions</span></footer></main><footer class=main-footer>© 2019 VLDMR</footer></body></html>
+</code></pre></div><p>Note, how <code>actions/checkout@v1</code> above uses custom <code>path</code> input parameter. I set the path to <code>./src/github.com/${{ github.repository }}</code>, so the project is checked out to <code>src</code> directory in the runners's workspace, which I later pass as the value of <code>GOPATH</code> to the &ldquo;make test&rdquo; step. The leading dot in <code>./src</code> seems very important — I've spent the majority of the time trying to figure out that part — refer to <a href=https://github.com/actions/checkout/issues/41>this issue</a>.</p><p><a href=https://github.com/profefe/profefe/actions>See the workflow in action</a>.</p><p>To learn more about those <code>${{ ··· }}</code> &ldquo;macroses&rdquo; I suggest looking at the Actions&rsquo; &ldquo;<a href=https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions>Contexts and expression syntax</a>&rdquo; documentation.</p><footer class=article-meta><time datetime=2019-09-19T12:00:00Z>September 19, 2019</time><span class=tag>go</span><span class=tag>github actions</span></footer></main><footer class=main-footer>© 2019 VLDMR</footer></body></html>
