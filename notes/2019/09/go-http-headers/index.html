@@ -2,46 +2,46 @@
 <a href=/notes>Notes</a>
 <a href=https://github.com/narqo>GitHub</a>
 <a href=https://twitter.com/tvii>Twitter</a>
-<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Go's net/http.Headers</h1></header><p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with extra specific methods. A usual way to initialise and populate such data-structure from an external representation is something like that:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Header</span> <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>][]<span style=color:#66d9ef>string</span>
+<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Go's net/http.Headers</h1></header><p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with extra specific methods. A usual way to initialise and populate such data-structure from an external representation is something like that:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#00f>type</span> Header <span style=color:#00f>map</span>[<span style=color:#2b91af>string</span>][]<span style=color:#2b91af>string</span>
 
-<span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>h</span> <span style=color:#a6e22e>Header</span>) <span style=color:#a6e22e>Add</span>(<span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>val</span> <span style=color:#66d9ef>string</span>) {
-    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>val</span> <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;&#34;</span> {
-        <span style=color:#66d9ef>return</span>
+<span style=color:#00f>func</span> (h Header) Add(key, val <span style=color:#2b91af>string</span>) {
+    <span style=color:#00f>if</span> val == <span style=color:#a31515>&#34;&#34;</span> {
+        <span style=color:#00f>return</span>
     }
-    <span style=color:#a6e22e>h</span>[<span style=color:#a6e22e>key</span>] = append(<span style=color:#a6e22e>h</span>[<span style=color:#a6e22e>key</span>], <span style=color:#a6e22e>val</span>)
+    h[key] = append(h[key], val)
 }
 
-<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
-    <span style=color:#a6e22e>h</span> <span style=color:#f92672>:=</span> make(<span style=color:#a6e22e>Header</span>)
-    <span style=color:#a6e22e>h</span>.<span style=color:#a6e22e>Add</span>(<span style=color:#e6db74>&#34;Host&#34;</span>, <span style=color:#e6db74>&#34;example.com&#34;</span>)
-    <span style=color:#a6e22e>h</span>.<span style=color:#a6e22e>Add</span>(<span style=color:#e6db74>&#34;Via&#34;</span>, <span style=color:#e6db74>&#34;a.example.com&#34;</span>)
-    <span style=color:#a6e22e>h</span>.<span style=color:#a6e22e>Add</span>(<span style=color:#e6db74>&#34;Via&#34;</span>, <span style=color:#e6db74>&#34;b.example.com&#34;</span>)
+<span style=color:#00f>func</span> main() {
+    h := make(Header)
+    h.Add(<span style=color:#a31515>&#34;Host&#34;</span>, <span style=color:#a31515>&#34;example.com&#34;</span>)
+    h.Add(<span style=color:#a31515>&#34;Via&#34;</span>, <span style=color:#a31515>&#34;a.example.com&#34;</span>)
+    h.Add(<span style=color:#a31515>&#34;Via&#34;</span>, <span style=color:#a31515>&#34;b.example.com&#34;</span>)
 }
 </code></pre></div><p>From the code above, one can notice that we allocated a new slice of strings for every unique key that we added to headers. For things like HTTP headers, that're automatically parsed for every incoming request, this bunch of tiny allocations is something we'd like to avoid.</p><p>I was curious to know if Go's standard library cares about that.</p><p>Looking at the implementation of <a href=https://golang.org/pkg/net/textproto/#Reader.ReadMIMEHeader><code>net/textproto.Reader.ReadMIMEHeader()</code></a>, which's used in the standard
-HTTP server, or Go 1.13’s new <a href=https://golang.org/pkg/net/http/#Header.Clone><code>net/http.Header.Copy()</code></a>, it turned out they solve the problem quit elegantly.</p><p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.</p><p>Knowing that, we can refactor the initial <code>Header.Add</code> as the following:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#66d9ef>type</span> <span style=color:#a6e22e>Header</span> <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>string</span>][]<span style=color:#66d9ef>string</span>
+HTTP server, or Go 1.13’s new <a href=https://golang.org/pkg/net/http/#Header.Clone><code>net/http.Header.Copy()</code></a>, it turned out they solve the problem quit elegantly.</p><p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.</p><p>Knowing that, we can refactor the initial <code>Header.Add</code> as the following:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#00f>type</span> Header <span style=color:#00f>map</span>[<span style=color:#2b91af>string</span>][]<span style=color:#2b91af>string</span>
 
-<span style=color:#66d9ef>func</span> (<span style=color:#a6e22e>h</span> <span style=color:#a6e22e>Header</span>) <span style=color:#a6e22e>add</span>(<span style=color:#a6e22e>vv</span> []<span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>val</span> <span style=color:#66d9ef>string</span>) []<span style=color:#66d9ef>string</span> {
-    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>val</span> <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;&#34;</span> { <span style=color:#960050;background-color:#1e0010>·</span><span style=color:#960050;background-color:#1e0010>·</span><span style=color:#960050;background-color:#1e0010>·</span> }
+<span style=color:#00f>func</span> (h Header) add(vv []<span style=color:#2b91af>string</span>, key, val <span style=color:#2b91af>string</span>) []<span style=color:#2b91af>string</span> {
+    <span style=color:#00f>if</span> val == <span style=color:#a31515>&#34;&#34;</span> { <span>·</span><span>·</span><span>·</span> }
 
-    <span style=color:#75715e>// fast path for KV pair of a single value
-</span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>h</span>[<span style=color:#a6e22e>key</span>] <span style=color:#f92672>==</span> <span style=color:#66d9ef>nil</span> {
-        <span style=color:#a6e22e>vv</span> = append(<span style=color:#a6e22e>vv</span>, <span style=color:#a6e22e>value</span>)
-        <span style=color:#a6e22e>h</span>[<span style=color:#a6e22e>key</span>] = <span style=color:#a6e22e>vv</span>[:<span style=color:#ae81ff>1</span>:<span style=color:#ae81ff>1</span>]
-        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>vv</span>[<span style=color:#ae81ff>1</span>:]
+    <span style=color:green>// fast path for KV pair of a single value
+</span><span style=color:green></span>    <span style=color:#00f>if</span> h[key] == <span style=color:#00f>nil</span> {
+        vv = append(vv, value)
+        h[key] = vv[:1:1]
+        <span style=color:#00f>return</span> vv[1:]
     }
 
-    <span style=color:#75715e>// slow path, when KV pair has two or more values
-</span><span style=color:#75715e></span>    <span style=color:#a6e22e>h</span>[<span style=color:#a6e22e>key</span>] = append(<span style=color:#a6e22e>h</span>[<span style=color:#a6e22e>key</span>], <span style=color:#a6e22e>val</span>)
-    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>vv</span>
+    <span style=color:green>// slow path, when KV pair has two or more values
+</span><span style=color:green></span>    h[key] = append(h[key], val)
+    <span style=color:#00f>return</span> vv
 }
 
-<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>main</span>() {
-    <span style=color:#a6e22e>h</span> <span style=color:#f92672>:=</span> make(<span style=color:#a6e22e>Header</span>)
-    <span style=color:#75715e>// net/textprotocol pre-counts total number of request&#39;s headers
-</span><span style=color:#75715e></span>    <span style=color:#75715e>// to allocate the slice of known capacity
-</span><span style=color:#75715e></span>    <span style=color:#a6e22e>vv</span> <span style=color:#f92672>:=</span> make([]<span style=color:#66d9ef>string</span>, <span style=color:#ae81ff>0</span>)
+<span style=color:#00f>func</span> main() {
+    h := make(Header)
+    <span style=color:green>// net/textprotocol pre-counts total number of request&#39;s headers
+</span><span style=color:green></span>    <span style=color:green>// to allocate the slice of known capacity
+</span><span style=color:green></span>    vv := make([]<span style=color:#2b91af>string</span>, 0)
 
-    <span style=color:#a6e22e>vv</span> = <span style=color:#a6e22e>h</span>.<span style=color:#a6e22e>add</span>(<span style=color:#a6e22e>vv</span>, <span style=color:#e6db74>&#34;Host&#34;</span>, <span style=color:#e6db74>&#34;example.com&#34;</span>)
-    <span style=color:#a6e22e>vv</span> = <span style=color:#a6e22e>h</span>.<span style=color:#a6e22e>add</span>(<span style=color:#a6e22e>vv</span>, <span style=color:#e6db74>&#34;Via&#34;</span>, <span style=color:#e6db74>&#34;a.example.com&#34;</span>)
+    vv = h.add(vv, <span style=color:#a31515>&#34;Host&#34;</span>, <span style=color:#a31515>&#34;example.com&#34;</span>)
+    vv = h.add(vv, <span style=color:#a31515>&#34;Via&#34;</span>, <span style=color:#a31515>&#34;a.example.com&#34;</span>)
 }
 </code></pre></div><p>Note that we use <code>vv[:1:1]</code> to create a <a href=https://golang.org/ref/spec#Slice_expressions>subslice of the fixed capacity</a> (length 1, capacity 1).</p><p>If there is a KV-pair that has several values, e.g. &ldquo;Via&rdquo; header, <code>Add</code> will allocate a separate slice for that key, doubling its capacity.</p><footer class=article-meta><time datetime=2019-09-04T12:00:00Z>September 4, 2019</time><span class=tag>go</span><span class=tag>µ-benchmarks</span></footer></main><footer class=main-footer>© 2019 VLDMR</footer></body></html>

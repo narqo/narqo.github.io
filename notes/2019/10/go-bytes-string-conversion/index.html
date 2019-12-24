@@ -8,33 +8,33 @@ it's fine to do string to bytes conversion using a so called &ldquo;<code>unsafe
 data directly, with out copying the data from string to bytes and vice versa). One can find several
 ways of performing the trick, but none of them seems &ldquo;the one that must be used&rdquo;.</p><p>After years of episodic discussions, a collegue of mine assembled the list of different conserns and about
 the proper way of doing it (<em>see &ldquo;<a href=https://groups.google.com/d/topic/golang-nuts/Zsfk-VMd_fU/discussion>unsafe conversion between string &lt;-> []byte</a>&rdquo; topic on golang-nuts forum</em>).
-Thanks to replies from Go team, our most valid way of doing it is following:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#75715e>// Refer to github.com/fmstephe/unsafeutil
-</span><span style=color:#75715e></span>
-<span style=color:#66d9ef>type</span> <span style=color:#a6e22e>stringHeader</span> <span style=color:#66d9ef>struct</span> {
-	<span style=color:#a6e22e>data</span>      <span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>
-	<span style=color:#a6e22e>stringLen</span> <span style=color:#66d9ef>int</span>
+Thanks to replies from Go team, our most valid way of doing it is following:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:green>// Refer to github.com/fmstephe/unsafeutil
+</span><span style=color:green></span>
+<span style=color:#00f>type</span> stringHeader <span style=color:#00f>struct</span> {
+	data      unsafe.Pointer
+	stringLen <span style=color:#2b91af>int</span>
 }
 
-<span style=color:#66d9ef>type</span> <span style=color:#a6e22e>sliceHeader</span> <span style=color:#66d9ef>struct</span> {
-	<span style=color:#a6e22e>data</span>     <span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>
-	<span style=color:#a6e22e>sliceLen</span> <span style=color:#66d9ef>int</span>
-	<span style=color:#a6e22e>sliceCap</span> <span style=color:#66d9ef>int</span>
+<span style=color:#00f>type</span> sliceHeader <span style=color:#00f>struct</span> {
+	data     unsafe.Pointer
+	sliceLen <span style=color:#2b91af>int</span>
+	sliceCap <span style=color:#2b91af>int</span>
 }
 
-<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>StringToBytes</span>(<span style=color:#a6e22e>s</span> <span style=color:#66d9ef>string</span>) (<span style=color:#a6e22e>b</span> []<span style=color:#66d9ef>byte</span>) {
-	<span style=color:#a6e22e>stringHeader</span> <span style=color:#f92672>:=</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>stringHeader</span>)(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>s</span>))
-	<span style=color:#a6e22e>sliceHeader</span> <span style=color:#f92672>:=</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>sliceHeader</span>)(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>b</span>))
-	<span style=color:#a6e22e>sliceHeader</span>.<span style=color:#a6e22e>data</span> = <span style=color:#a6e22e>stringHeader</span>.<span style=color:#a6e22e>data</span>
-	<span style=color:#a6e22e>sliceHeader</span>.<span style=color:#a6e22e>sliceLen</span> = len(<span style=color:#a6e22e>s</span>)
-	<span style=color:#a6e22e>sliceHeader</span>.<span style=color:#a6e22e>sliceCap</span> = len(<span style=color:#a6e22e>s</span>)
-	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>b</span>
+<span style=color:#00f>func</span> StringToBytes(s <span style=color:#2b91af>string</span>) (b []<span style=color:#2b91af>byte</span>) {
+	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;s))
+	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;b))
+	sliceHeader.data = stringHeader.data
+	sliceHeader.sliceLen = len(s)
+	sliceHeader.sliceCap = len(s)
+	<span style=color:#00f>return</span> b
 }
 
-<span style=color:#66d9ef>func</span> <span style=color:#a6e22e>BytesToString</span>(<span style=color:#a6e22e>b</span> []<span style=color:#66d9ef>byte</span>) (<span style=color:#a6e22e>s</span> <span style=color:#66d9ef>string</span>) {
-	<span style=color:#a6e22e>sliceHeader</span> <span style=color:#f92672>:=</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>sliceHeader</span>)(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>b</span>))
-	<span style=color:#a6e22e>stringHeader</span> <span style=color:#f92672>:=</span> (<span style=color:#f92672>*</span><span style=color:#a6e22e>stringHeader</span>)(<span style=color:#a6e22e>unsafe</span>.<span style=color:#a6e22e>Pointer</span>(<span style=color:#f92672>&amp;</span><span style=color:#a6e22e>s</span>))
-	<span style=color:#a6e22e>stringHeader</span>.<span style=color:#a6e22e>data</span> = <span style=color:#a6e22e>sliceHeader</span>.<span style=color:#a6e22e>data</span>
-	<span style=color:#a6e22e>stringHeader</span>.<span style=color:#a6e22e>stringLen</span> = len(<span style=color:#a6e22e>b</span>)
-	<span style=color:#66d9ef>return</span> <span style=color:#a6e22e>s</span>
+<span style=color:#00f>func</span> BytesToString(b []<span style=color:#2b91af>byte</span>) (s <span style=color:#2b91af>string</span>) {
+	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;b))
+	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;s))
+	stringHeader.data = sliceHeader.data
+	stringHeader.stringLen = len(b)
+	<span style=color:#00f>return</span> s
 }
 </code></pre></div><footer class=article-meta><time datetime=2019-10-08T12:00:00Z>October 8, 2019</time><span class=tag>go</span><span class=tag>µ-benchmarks</span></footer></main><footer class=main-footer>© 2019 VLDMR</footer></body></html>
