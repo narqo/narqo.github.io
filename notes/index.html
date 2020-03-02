@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="ie=edge"><title>Notes - Vladimir Varankin</title><link rel=alternate type=application/rss+xml href=https://vladimir.varank.in/notes/index.xml title="Notes from Vladimir Varankin"><style>:root{--background-color: #fff;--text-color: #111;--header-color: #111;--link-color: rgb(0, 16, 161);--link-underline-color: rgba(0, 16, 161, 0.3);--link-hover-color: rgb(190, 0, 0);--link-hover-underline-color: rgba(190, 0, 0, 0.3)}@media(prefers-color-scheme:dark){:root.theme-dark{--background-color: #181818;--text-color: #cfcfcf;--header-color: #fefefe;--link-color: rgb(85, 172, 255);--link-underline-color: rgb(85, 172, 255, 0.8);--link-hover-color: rgb(231, 66, 66);--link-hover-underline-color: rgb(231, 66, 66, 0.8)}}body{background:var(--background-color);color:var(--text-color);font-family:Charter,Georgia,serif;font-size:16px;line-height:1.45;margin:8px 12px}h1,h2,h3,h4{color:var(--header-color);font-family:Athelas,Georgia,serif;line-height:1}h1{font-size:40px;margin:.5em 0 .2em}a{color:#0010a1;color:var(--link-color);text-decoration-color:var(--link-underline-color)}a:hover,a:active{color:#be0000;color:var(--link-hover-color);text-decoration-color:var(--link-hover-underline-color)}pre{line-height:1.3}code{font-family:Menlo,Consolas,monospace;font-size:14px}hr{border:none;border-bottom:1px solid;width:90%}.main-nav{letter-spacing:.3em;padding-bottom:16px}.main-nav a,.main-nav span{letter-spacing:0}.main-content{max-width:900px}.main-footer{margin:50px 0 0}.article{margin:0 0 50px}.article-meta{font-size:14px;line-height:1}.tag{margin:0 0 0 .7em}</style></head><body><nav class=main-nav><a href=/>Vladimir Varankin</a>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="ie=edge"><title>Notes - Vladimir Varankin</title><link rel=alternate type=application/rss+xml href=https://vladimir.varank.in/notes/index.xml title="Notes from Vladimir Varankin"><meta property="og:title" content="Notes"><meta property="og:description" content><meta property="og:type" content="website"><meta property="og:url" content="https://vladimir.varank.in/notes/"><meta property="og:updated_time" content="2020-01-27T00:00:00+00:00"><style>:root{--background-color: #fff;--text-color: #111;--header-color: #111;--link-color: rgb(0, 16, 161);--link-underline-color: rgba(0, 16, 161, 0.3);--link-hover-color: rgb(190, 0, 0);--link-hover-underline-color: rgba(190, 0, 0, 0.3)}@media(prefers-color-scheme:dark){:root.theme-dark{--background-color: #181818;--text-color: #cfcfcf;--header-color: #fefefe;--link-color: rgb(85, 172, 255);--link-underline-color: rgb(85, 172, 255, 0.8);--link-hover-color: rgb(231, 66, 66);--link-hover-underline-color: rgb(231, 66, 66, 0.8)}}body{background:var(--background-color);color:var(--text-color);font-family:Charter,Georgia,serif;font-size:16px;line-height:1.45;margin:8px 12px}h1,h2,h3,h4{color:var(--header-color);font-family:Athelas,Georgia,serif;line-height:1}h1{font-size:40px;margin:.5em 0 .2em}a{color:#0010a1;color:var(--link-color);text-decoration-color:var(--link-underline-color)}a:hover,a:active{color:#be0000;color:var(--link-hover-color);text-decoration-color:var(--link-hover-underline-color)}pre{line-height:1.3}code{font-family:Menlo,Consolas,monospace;font-size:14px}pre code{font-size:13px}hr{border:none;border-bottom:1px solid;width:90%}.main-nav{letter-spacing:.3em;padding-bottom:16px}.main-nav a,.main-nav span{letter-spacing:0}.main-content{max-width:900px}.main-footer{margin:50px 0 0}.article{margin:0 0 50px}.article-meta{font-size:14px;line-height:1}.tag{margin:0 0 0 .7em}</style></head><body><nav class=main-nav><a href=/>Vladimir Varankin</a>
 <a href=/notes class=item-current>Notes</a>
 <a href=https://github.com/narqo>GitHub</a>
 <a href=https://twitter.com/tvii>Twitter</a>
@@ -99,36 +99,36 @@ it&rsquo;s fine to do string to bytes conversion using a so called &ldquo;<code>
 data directly, with out copying the data from string to bytes and vice versa). One can find several
 ways of performing the trick, but none of them seems &ldquo;the one that must be used&rdquo;.</p><p>After years of episodic discussions, a collegue of mine assembled the list of different conserns and about
 the proper way of doing it (<em>see &ldquo;<a href=https://groups.google.com/d/topic/golang-nuts/Zsfk-VMd_fU/discussion>unsafe conversion between string &lt;-> []byte</a>&rdquo; topic on golang-nuts forum</em>).
-Thanks to replies from Go team, our most valid way of doing it is following:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:green>// Refer to github.com/fmstephe/unsafeutil
-</span><span style=color:green></span>
-<span style=color:#00f>type</span> stringHeader <span style=color:#00f>struct</span> {
+Thanks to replies from Go team, our most valid way of doing it is following:</p><pre><code>// Refer to github.com/fmstephe/unsafeutil
+
+type stringHeader struct {
 	data      unsafe.Pointer
-	stringLen <span style=color:#2b91af>int</span>
+	stringLen int
 }
 
-<span style=color:#00f>type</span> sliceHeader <span style=color:#00f>struct</span> {
+type sliceHeader struct {
 	data     unsafe.Pointer
-	sliceLen <span style=color:#2b91af>int</span>
-	sliceCap <span style=color:#2b91af>int</span>
+	sliceLen int
+	sliceCap int
 }
 
-<span style=color:#00f>func</span> StringToBytes(s <span style=color:#2b91af>string</span>) (b []<span style=color:#2b91af>byte</span>) {
+func StringToBytes(s string) (b []byte) {
 	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;s))
 	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;b))
 	sliceHeader.data = stringHeader.data
 	sliceHeader.sliceLen = len(s)
 	sliceHeader.sliceCap = len(s)
-	<span style=color:#00f>return</span> b
+	return b
 }
 
-<span style=color:#00f>func</span> BytesToString(b []<span style=color:#2b91af>byte</span>) (s <span style=color:#2b91af>string</span>) {
+func BytesToString(b []byte) (s string) {
 	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;b))
 	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;s))
 	stringHeader.data = sliceHeader.data
 	stringHeader.stringLen = len(b)
-	<span style=color:#00f>return</span> s
+	return s
 }
-</code></pre></div><footer class=article-meta><time datetime=2019-10-08T12:00:00Z>October 8, 2019</time><span class=tag>go</span><span class=tag>µ-benchmarks</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/github-actions-and-gopath/>Github Actions and GOPATH</a></h2></header><p>The other day I received my beta access to <a href=https://github.com/features/actions>GitHub Actions</a>. To try them out I picked an existing pet project and created a <em>workflow</em> using a Go project template provided by GitHub. As it&rsquo;s in <em>September 2019</em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.</p><p>My project is a <em>classic Go service</em> ;) meaning: it uses vendoring and doesn&rsquo;t use Go modules. So no need for &ldquo;get dependencies&rdquo; step. And it requires to be inside the <code>GOPATH</code>. With that, the provided workflow needed some adjustment.</p><p>After some trials and errors, I&rsquo;ve managed to make <code>checkout</code> step to clone the repo into the correct destination inside the <code>GOPATH</code>. Here is the final workflow:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#00f>name</span>: Run Go test
+</code></pre><footer class=article-meta><time datetime=2019-10-08T12:00:00Z>October 8, 2019</time><span class=tag>go</span><span class=tag>µ-benchmarks</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/github-actions-and-gopath/>Github Actions and GOPATH</a></h2></header><p>The other day I received my beta access to <a href=https://github.com/features/actions>GitHub Actions</a>. To try them out I picked an existing pet project and created a <em>workflow</em> using a Go project template provided by GitHub. As it&rsquo;s in <em>September 2019</em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.</p><p>My project is a <em>classic Go service</em> ;) meaning: it uses vendoring and doesn&rsquo;t use Go modules. So no need for &ldquo;get dependencies&rdquo; step. And it requires to be inside the <code>GOPATH</code>. With that, the provided workflow needed some adjustment.</p><p>After some trials and errors, I&rsquo;ve managed to make <code>checkout</code> step to clone the repo into the correct destination inside the <code>GOPATH</code>. Here is the final workflow:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#00f>name</span>: Run Go test
 <span style=color:#00f>on</span>: [pull_request]
 <span style=color:#00f>jobs</span>:
   <span style=color:#00f>test</span>:
@@ -151,46 +151,46 @@ Thanks to replies from Go team, our most valid way of doing it is following:</p>
       - <span style=color:#00f>run</span>: make test
         <span style=color:#00f>env</span>:
           <span style=color:#00f>GOPATH</span>: ${{ runner.workspace }}
-</code></pre></div><p>Note, how <code>actions/checkout@v1</code> above uses custom <code>path</code> input parameter. I set the path to <code>./src/github.com/${{ github.repository }}</code>, so the project is checked out to <code>src</code> directory in the runners&rsquo;s workspace, which I later pass as the value of <code>GOPATH</code> to the &ldquo;make test&rdquo; step. The leading dot in <code>./src</code> seems very important — I&rsquo;ve spent the majority of the time trying to figure out that part — refer to <a href=https://github.com/actions/checkout/issues/41>this issue</a>.</p><p><a href=https://github.com/profefe/profefe/actions>See the workflow in action</a>.</p><p>To learn more about those <code>${{ ··· }}</code> &ldquo;macroses&rdquo; I suggest looking at the Actions&rsquo; &ldquo;<a href=https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions>Contexts and expression syntax</a>&rdquo; documentation.</p><footer class=article-meta><time datetime=2019-09-19T12:00:00Z>September 19, 2019</time><span class=tag>go</span><span class=tag>github actions</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/go-http-headers/>Go's net/http.Headers</a></h2></header><p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with extra specific methods. A usual way to initialise and populate such data-structure from an external representation is something like that:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#00f>type</span> Header <span style=color:#00f>map</span>[<span style=color:#2b91af>string</span>][]<span style=color:#2b91af>string</span>
+</code></pre></div><p>Note, how <code>actions/checkout@v1</code> above uses custom <code>path</code> input parameter. I set the path to <code>./src/github.com/${{ github.repository }}</code>, so the project is checked out to <code>src</code> directory in the runners&rsquo;s workspace, which I later pass as the value of <code>GOPATH</code> to the &ldquo;make test&rdquo; step. The leading dot in <code>./src</code> seems very important — I&rsquo;ve spent the majority of the time trying to figure out that part — refer to <a href=https://github.com/actions/checkout/issues/41>this issue</a>.</p><p><a href=https://github.com/profefe/profefe/actions>See the workflow in action</a>.</p><p>To learn more about those <code>${{ ··· }}</code> &ldquo;macroses&rdquo; I suggest looking at the Actions&rsquo; &ldquo;<a href=https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions>Contexts and expression syntax</a>&rdquo; documentation.</p><footer class=article-meta><time datetime=2019-09-19T12:00:00Z>September 19, 2019</time><span class=tag>go</span><span class=tag>github actions</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/go-http-headers/>Go's net/http.Headers</a></h2></header><p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with extra specific methods. A usual way to initialise and populate such data-structure from an external representation is something like that:</p><pre><code>type Header map[string][]string
 
-<span style=color:#00f>func</span> (h Header) Add(key, val <span style=color:#2b91af>string</span>) {
-    <span style=color:#00f>if</span> val == <span style=color:#a31515>&#34;&#34;</span> {
-        <span style=color:#00f>return</span>
+func (h Header) Add(key, val string) {
+    if val == &quot;&quot; {
+        return
     }
     h[key] = append(h[key], val)
 }
 
-<span style=color:#00f>func</span> main() {
+func main() {
     h := make(Header)
-    h.Add(<span style=color:#a31515>&#34;Host&#34;</span>, <span style=color:#a31515>&#34;example.com&#34;</span>)
-    h.Add(<span style=color:#a31515>&#34;Via&#34;</span>, <span style=color:#a31515>&#34;a.example.com&#34;</span>)
-    h.Add(<span style=color:#a31515>&#34;Via&#34;</span>, <span style=color:#a31515>&#34;b.example.com&#34;</span>)
+    h.Add(&quot;Host&quot;, &quot;example.com&quot;)
+    h.Add(&quot;Via&quot;, &quot;a.example.com&quot;)
+    h.Add(&quot;Via&quot;, &quot;b.example.com&quot;)
 }
-</code></pre></div><p>From the code above, one can notice that we allocated a new slice of strings for every unique key that we added to headers. For things like HTTP headers, that&rsquo;re automatically parsed for every incoming request, this bunch of tiny allocations is something we&rsquo;d like to avoid.</p><p>I was curious to know if Go&rsquo;s standard library cares about that.</p><p>Looking at the implementation of <a href=https://golang.org/pkg/net/textproto/#Reader.ReadMIMEHeader><code>net/textproto.Reader.ReadMIMEHeader()</code></a>, which&rsquo;s used in the standard
-HTTP server, or Go 1.13’s new <a href=https://golang.org/pkg/net/http/#Header.Clone><code>net/http.Header.Copy()</code></a>, it turned out they solve the problem quit elegantly.</p><p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.</p><p>Knowing that, we can refactor the initial <code>Header.Add</code> as the following:</p><div class=highlight><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-go data-lang=go><span style=color:#00f>type</span> Header <span style=color:#00f>map</span>[<span style=color:#2b91af>string</span>][]<span style=color:#2b91af>string</span>
+</code></pre><p>From the code above, one can notice that we allocated a new slice of strings for every unique key that we added to headers. For things like HTTP headers, that&rsquo;re automatically parsed for every incoming request, this bunch of tiny allocations is something we&rsquo;d like to avoid.</p><p>I was curious to know if Go&rsquo;s standard library cares about that.</p><p>Looking at the implementation of <a href=https://golang.org/pkg/net/textproto/#Reader.ReadMIMEHeader><code>net/textproto.Reader.ReadMIMEHeader()</code></a>, which&rsquo;s used in the standard
+HTTP server, or Go 1.13’s new <a href=https://golang.org/pkg/net/http/#Header.Clone><code>net/http.Header.Copy()</code></a>, it turned out they solve the problem quit elegantly.</p><p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.</p><p>Knowing that, we can refactor the initial <code>Header.Add</code> as the following:</p><pre><code>type Header map[string][]string
 
-<span style=color:#00f>func</span> (h Header) add(vv []<span style=color:#2b91af>string</span>, key, val <span style=color:#2b91af>string</span>) []<span style=color:#2b91af>string</span> {
-    <span style=color:#00f>if</span> val == <span style=color:#a31515>&#34;&#34;</span> { <span>·</span><span>·</span><span>·</span> }
+func (h Header) add(vv []string, key, val string) []string {
+    if val == &quot;&quot; { ··· }
 
-    <span style=color:green>// fast path for KV pair of a single value
-</span><span style=color:green></span>    <span style=color:#00f>if</span> h[key] == <span style=color:#00f>nil</span> {
+    // fast path for KV pair of a single value
+    if h[key] == nil {
         vv = append(vv, value)
         h[key] = vv[:1:1]
-        <span style=color:#00f>return</span> vv[1:]
+        return vv[1:]
     }
 
-    <span style=color:green>// slow path, when KV pair has two or more values
-</span><span style=color:green></span>    h[key] = append(h[key], val)
-    <span style=color:#00f>return</span> vv
+    // slow path, when KV pair has two or more values
+    h[key] = append(h[key], val)
+    return vv
 }
 
-<span style=color:#00f>func</span> main() {
+func main() {
     h := make(Header)
-    <span style=color:green>// net/textprotocol pre-counts total number of request&#39;s headers
-</span><span style=color:green></span>    <span style=color:green>// to allocate the slice of known capacity
-</span><span style=color:green></span>    vv := make([]<span style=color:#2b91af>string</span>, 0)
+    // net/textprotocol pre-counts total number of request's headers
+    // to allocate the slice of known capacity
+    vv := make([]string, 0)
 
-    vv = h.add(vv, <span style=color:#a31515>&#34;Host&#34;</span>, <span style=color:#a31515>&#34;example.com&#34;</span>)
-    vv = h.add(vv, <span style=color:#a31515>&#34;Via&#34;</span>, <span style=color:#a31515>&#34;a.example.com&#34;</span>)
+    vv = h.add(vv, &quot;Host&quot;, &quot;example.com&quot;)
+    vv = h.add(vv, &quot;Via&quot;, &quot;a.example.com&quot;)
 }
-</code></pre></div><p>Note that we use <code>vv[:1:1]</code> to create a <a href=https://golang.org/ref/spec#Slice_expressions>subslice of the fixed capacity</a> (length 1, capacity 1).</p><p>If there is a KV-pair that has several values, e.g. &ldquo;Via&rdquo; header, <code>Add</code> will allocate a separate slice for that key, doubling its capacity.</p><footer class=article-meta><time datetime=2019-09-04T12:00:00Z>September 4, 2019</time><span class=tag>go</span><span class=tag>µ-benchmarks</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/hello-world/>Hello World</a></h2></header><p>Let&rsquo;s create a blog. But let&rsquo;s call them &ldquo;notes&rdquo;.</p><p>Because sometimes there are thoughts I want to share with you. Some of them might even be larger than a tweet.</p><footer class=article-meta><time datetime=2019-09-01T12:00:00Z>September 1, 2019</time></footer></article></main><footer class=main-footer>© 2020 VLDMR</footer></body></html>
+</code></pre><p>Note that we use <code>vv[:1:1]</code> to create a <a href=https://golang.org/ref/spec#Slice_expressions>subslice of the fixed capacity</a> (length 1, capacity 1).</p><p>If there is a KV-pair that has several values, e.g. &ldquo;Via&rdquo; header, <code>Add</code> will allocate a separate slice for that key, doubling its capacity.</p><footer class=article-meta><time datetime=2019-09-04T12:00:00Z>September 4, 2019</time><span class=tag>go</span><span class=tag>µ-benchmarks</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2019/09/hello-world/>Hello World</a></h2></header><p>Let&rsquo;s create a blog. But let&rsquo;s call them &ldquo;notes&rdquo;.</p><p>Because sometimes there are thoughts I want to share with you. Some of them might even be larger than a tweet.</p><footer class=article-meta><time datetime=2019-09-01T12:00:00Z>September 1, 2019</time></footer></article></main><footer class=main-footer>© 2020 VLDMR</footer></body></html>
