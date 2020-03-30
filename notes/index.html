@@ -1,9 +1,135 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="ie=edge"><title>Notes - Vladimir Varankin</title><link rel=alternate type=application/rss+xml href=https://vladimir.varank.in/notes/index.xml title="Notes from Vladimir Varankin"><meta property="og:title" content="Notes"><meta property="og:description" content><meta property="og:type" content="website"><meta property="og:url" content="https://vladimir.varank.in/notes/"><meta property="og:updated_time" content="2020-01-27T00:00:00+00:00"><style>:root{--background-color: #fff;--text-color: #111;--header-color: #111;--link-color: rgb(0, 16, 161);--link-underline-color: rgba(0, 16, 161, 0.3);--link-hover-color: rgb(190, 0, 0);--link-hover-underline-color: rgba(190, 0, 0, 0.3)}@media(prefers-color-scheme:dark){:root.theme-dark{--background-color: #181818;--text-color: #cfcfcf;--header-color: #fefefe;--link-color: rgb(85, 172, 255);--link-underline-color: rgb(85, 172, 255, 0.8);--link-hover-color: rgb(231, 66, 66);--link-hover-underline-color: rgb(231, 66, 66, 0.8)}}body{background:var(--background-color);color:var(--text-color);font-family:Charter,Georgia,serif;font-size:16px;line-height:1.45;margin:8px 12px}h1,h2,h3,h4{color:var(--header-color);font-family:Athelas,Georgia,serif;line-height:1}h1{font-size:40px;margin:.5em 0 .2em}a{color:#0010a1;color:var(--link-color);text-decoration-color:var(--link-underline-color)}a:hover,a:active{color:#be0000;color:var(--link-hover-color);text-decoration-color:var(--link-hover-underline-color)}ul{list-style:circle;max-width:840px}pre{line-height:1.3}code{font-family:Menlo,Consolas,monospace;font-size:14px}pre code{font-size:13px}hr{border:none;border-bottom:1px solid;width:90%}.main-nav{letter-spacing:.3em;padding-bottom:16px}.main-nav a,.main-nav span{letter-spacing:0}.main-content{max-width:900px}.main-footer{margin:50px 0 0}.article{margin:0 0 50px}.article-meta{font-size:14px;line-height:1;padding:20px 0 0}.tag{margin:0 0 0 .7em}</style></head><body><nav class=main-nav><a href=/>Vladimir Varankin</a>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="ie=edge"><title>Notes - Vladimir Varankin</title><link rel=alternate type=application/rss+xml href=https://vladimir.varank.in/notes/index.xml title="Notes from Vladimir Varankin"><meta property="og:title" content="Notes"><meta property="og:description" content><meta property="og:type" content="website"><meta property="og:url" content="https://vladimir.varank.in/notes/"><meta property="og:updated_time" content="2020-03-30T00:00:00+00:00"><style>:root{--background-color: #fff;--text-color: #111;--header-color: #111;--link-color: rgb(0, 16, 161);--link-underline-color: rgba(0, 16, 161, 0.3);--link-hover-color: rgb(190, 0, 0);--link-hover-underline-color: rgba(190, 0, 0, 0.3)}@media(prefers-color-scheme:dark){:root.theme-dark{--background-color: #181818;--text-color: #cfcfcf;--header-color: #fefefe;--link-color: rgb(85, 172, 255);--link-underline-color: rgb(85, 172, 255, 0.8);--link-hover-color: rgb(231, 66, 66);--link-hover-underline-color: rgb(231, 66, 66, 0.8)}}body{background:var(--background-color);color:var(--text-color);font-family:Charter,Georgia,serif;font-size:16px;line-height:1.45;margin:8px 12px}h1,h2,h3,h4{color:var(--header-color);font-family:Athelas,Georgia,serif;line-height:1}h1{font-size:40px;margin:.5em 0 .2em}a{color:#0010a1;color:var(--link-color);text-decoration-color:var(--link-underline-color)}a:hover,a:active{color:#be0000;color:var(--link-hover-color);text-decoration-color:var(--link-hover-underline-color)}ul{list-style:circle;max-width:840px}pre{line-height:1.3}code{font-family:Menlo,Consolas,monospace;font-size:14px}pre code{font-size:13px}hr{border:none;border-bottom:1px solid;width:90%}.main-nav{letter-spacing:.3em;padding-bottom:16px}.main-nav a,.main-nav span{letter-spacing:0}.main-content{max-width:900px}.main-footer{margin:50px 0 0}.article{margin:0 0 50px}.article-meta{font-size:14px;line-height:1;padding:20px 0 0}.tag{margin:0 0 0 .7em}</style></head><body><nav class=main-nav><a href=/>Vladimir Varankin</a>
 <a href=/notes class=item-current>Notes</a>
 <a href=/publications>Publications</a>
 <a href=https://github.com/narqo>GitHub</a>
 <a href=https://twitter.com/tvii>Twitter</a>
-<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Notes</h1></header><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2020/01/buildkit-multi-platform-travis-ci/>Building Multi-Platform Docker Images with Travis CI and BuildKit</a></h2></header><p><em>This is a lengthy note. If you don&rsquo;t quite feel reading and only need the working example, go directly to <a href=https://github.com/profefe/profefe/blob/09ff03be6561a7ef88fba7b96d923abd6a413931/.travis.yml>the Travis CI build file</a>.</em></p><p>The more I delve into the world of Raspberry Pi, the more I notice that &ldquo;regular and boring&rdquo; things on ARM are harder than I expected.</p><p>People build and distribute software exclusively for amd64. You read another &ldquo;<em>Kubernetes something</em>&rdquo; tutorial, that went viral on Twitter, and is fancy to try it out. Still, all helm charts, or whatever the author prefered, use Docker images built exclusively for amd64.</p><p>Docker toolchain has added the support for building multi-platform images in 19.x. However, it&rsquo;s available only under the &ldquo;experimental&rdquo; mode. The topic of building multi-platform Docker images yet feels underrepresented.</p><h2 id=but-first-what-are-multi-platform-docker-images>But first, what are multi-platform Docker images?</h2><p>When a client, e.g. Docker client, tries to pull an image, it must negotiate the details about what exactly to pull with the registry. The registry provides a manifest that describes the digest of the requested image, the volumes the image consists of, the platform this image can run on, etc. Optionally, the registry can provide a manifests list, which, as the name suggests, is a list of several manifests bundled into one. With the manifests list in hands, the client can figure out the particular digest of the image it needs to pull.</p><p>So multi-platform Docker images are just several images, whose manifests are bundled into the manifests list.</p><p>Imagine we want to pull the image <a href=https://hub.docker.com/_/golang><code>golang:1.13.6-alpine3.10</code></a>. Docker client will get the manifests list from Dockerhub. This list includes digests of several images, each built for the particular platform. If we&rsquo;re on Raspberry Pi, running the current Raspbian Linux, which is <code>arm/v7</code>, the client will pick the corresponding image&rsquo;s digest. Alternatively, we could choose to pull the image <a href=https://hub.docker.com/r/arm32v7/golang/><code>arm32v7/golang:1.13.6-alpine3.10</code></a> instead, and we ended up with the same image with the <a href=https://hub.docker.com/layers/arm32v7/golang/alpine3.10/images/sha256-d72fa60fb5b9ffc12db9c87340bc9d9f55852570f1efc7d7656f081749a7f0aa>digest <code>d72fa60fb5b9</code></a>. Of course, to use a single universal image name, i.e. <code>golang</code>, on every platform is way more convenient.</p><p>You can read more about manifests <a href=https://docs.docker.com/registry/spec/manifest-v2-2/>in Docker registry documentation</a>.</p><h2 id=does-it-mean-i-need-to-build-different-docker-images-for-each-platform-i-want-to-support>Does it mean I need to build different Docker images, for each platform I want to support?</h2><p>Well, yes. This is how, official images are built.</p><p>For every platform, the image is built and pushed to the registry under the name <code>&lt;platform>/&lt;image>:&lt;tag></code>, e.g. <a href=https://hub.docker.com/r/amd64/golang/><code>amd64/golang:1-alpine</code></a>. And next, a manifests list, that combines all those platform-specific images, is built and pushed with the simple name <code>&lt;image>:&lt;tag></code>.</p><p><a href=https://github.com/moby/buildkit>Docker&rsquo;s BuildKit</a> provides a toolkit that, among other nice things, allows building multi-platform images on a single host. BuildKit is used inside <a href=https://github.com/docker/buildx>Docker&rsquo; buildx project</a>, that is part of the recent Docker version.</p><p>One can use buildx, but, for this post, I wanted to try out, what would it look like to use BuildKit directly. For <a href=https://github.com/profefe/profefe>profefe</a>, the system for continuous profiling of Go services, I set up <a href=https://travis-ci.com/>Travis CI</a>, that builds a multi-platform Docker image and pushes them to Dockerhub.</p><p>profefe is written in Go. That simplifies things, because, thanks to Go compiler, I don&rsquo;t have to think about how to compile code for different platforms. <a href=https://github.com/profefe/profefe/blob/09ff03be6561a7ef88fba7b96d923abd6a413931/contrib/docker/Dockerfile>The same Dockerfile</a> will work fine on every platform.</p><p>Here&rsquo;s how &ldquo;deploy&rdquo; stage of the build job looks like (<a href=https://github.com/profefe/profefe/blob/09ff03be6561a7ef88fba7b96d923abd6a413931/.travis.yml>see <code>travis.yml</code> on profefe&rsquo;s GitHub</a>).</p><pre><code>dist: bionic
+<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Notes</h1></header><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2020/03/go-osx-core-location/>Retrieve Location of macOS Device from Go</a></h2></header><p>Participating in self-isolation is more fun when you have toys to play. As a fun weekend project, I wanted to look at how one accesses macOS Location Services and get the geographic location of the device from Go.</p><p>To obtain the geographic location of a device on macOS, we use <a href="https://developer.apple.com/documentation/corelocation?language=objc">Apple’s Core Location</a> framework. The framework is part of the OS, but it requires writting Objective-C (<em>or Swift</em>). Thanks to Go&rsquo;s cgo and because Objective-C is from the family of C languages, we can write a bridge between Objective-C and Go.</p><p><em><strong>Full disclosure</strong>, I haven’t written a line in C for more than 15 years. And more to that, it’s the first time I actually wrote something in Objective-C. The code is for illustrative purposes only. If you can help making it better, please, file an issue or a PR to <a href=https://github.com/narqo/playground-go/tree/master/osx-core-location>the example repo</a>, or write me <a href=https://twitter.com/tvii>on Twitter</a>.</em></p><p><em>The code might illustrate the example better than my English ;) Feel free to jump right into <a href=https://github.com/narqo/playground-go/tree/master/osx-core-location>the repo on GitHub</a>.</em></p><h2 id=part-1-go>Part 1. Go</h2><p>Let’s start with the Go code</p><pre><code>// File location_manager_darwin.go
+
+/* #import &quot;location_manager_darwin.h&quot; */
+import &quot;C&quot;
+
+// CurrentLocation retrives location of the device and returns it to the caller.
+func CurrentLocation() (Location, error) {
+    var cloc C.Location
+    if ret := C.get_current_location(&amp;cloc); ret != 0 {
+        return Location{}, fmt.Errorf(&quot;failed to get location, code %d&quot;, ret)
+    }
+
+    loc := Location{
+        // convert C Location to Go Location...
+    }
+    return loc, nil
+}
+</code></pre><p>Function <code>CurrentLocation</code> calls C function <code>get_current_location</code>, expecting it to either populate the C structure <code>C.Location</code> or return a non-zero error code.</p><p><code>get_current_location</code> is a plain-C function, that acts as a glue layer between Objective-C and Go. The function and the <code>C.Location</code> type are described in the header file, which we import with <code>#import "location_manager_darwin.h"</code> in the cgo directive. We will implement the function later in this note. For now, the definition of the function from the header:</p><pre><code>// File location_manager_darwin.h
+
+// Location struct represents the location data
+// from Apple's CLLocation object.
+typedef struct _Location {
+    CLLocationCoordinate2D coordinate;
+    double altitude;
+    double horizontalAccuracy;
+    double verticalAccuracy;
+} Location;
+
+int get_current_location(Location *loc);
+</code></pre><p><em>To compile the code we need two more cgo directives:</em></p><pre><code>// File location_manager_darwin.go
+
+/*
+#cgo CFLAGS: -x objective-c -mmacosx-version-min=10.14
+#cgo LDFLAGS: -framework CoreLocation -mmacosx-version-min=10.14
+
+#import &quot;location_manager_darwin.h&quot;
+import &quot;C&quot;
+*/
+</code></pre><p><em><code>cgo CFLAGS</code> and <code>cgo LDFLAGS</code> define the behaviour of the compiler. Refer to <a href=https://golang.org/cmd/cgo/>Go’s documentation about cgo</a> to learn more.</em></p><h2 id=part-2-objective-c>Part 2. Objective-C</h2><p>As I said earlier, getting the user’s location requires writing some Objective-C.</p><p>To get the actual location we need an instance of <a href="https://developer.apple.com/documentation/corelocation/cllocationmanager?language=objc">Apple&rsquo;s <code>CLLocationManager</code> class</a>, whose delegate (<code>CLLocationManagerDelegate</code>) will receive the location events. For some degree, delegates in Objective-C are similar to interfaces in Go. That is, delegate is a class that must implement some methods, that will be invoked by the delegate’s owner.</p><p>To keep things simple, I implemented a class, <code>LocationManager</code>, that&rsquo;s responsible for instantiating <code>CLLocationManager</code> and, at the same time, is the implementation of the delegate protocol:</p><pre><code>// File location_manager_darwin.m
+
+@interface LocationManager : NSObject &lt;CLLocationManagerDelegate&gt;
+{
+    CLLocationManager *manager;
+}
+@end
+
+@implementation LocationManager
+
+- (id)init {
+    self = [super init];
+
+    // create an instance of CLLocationManager
+    manager = [[CLLocationManager alloc] init];
+    // assign ourself as the delegate of the created instance
+    manager.delegate = self;
+
+    return self;
+}
+
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray&lt;CLLocation *&gt; *)locations {
+    // implement CLLocationManagerDelegate protocol
+}
+
+- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
+    // implement CLLocationManagerDelegate protocol
+}
+</code></pre><p><code>CLLocationManager</code> provides <a href><code>requestLocation</code></a> method, that, <em>as the name suggests</em>, requests the user’s geolocation. The method is asynchronous; on the first call, the OS’s location service will fire a macOS&rsquo;s modal dialogue, asking the user if they allow the application to access their location.</p><p>Below, method <code>getCurrentLocation</code> requests the geolocation and stops the invocation, waiting for events from OS’s location services to reach the delegate. The method then returns the location object (<a href="https://developer.apple.com/documentation/corelocation/cllocation?language=objc"><code>CLLocation</code></a>) to the caller:</p><pre><code>// File location_manager_darwin.m
+
+@implementation LocationManager
+
+- (id)init { ··· }
+
+- (CLLocation *)getCurrentLocation {
+    // request user’s current location
+    [manager requestLocation];
+
+    // start the run loop, waiting for the results from the delegate
+    CFRunLoopRun();
+
+    if (_errorCode != 0) {
+        return nil;
+    }
+    // return the most recently retrieved user location
+    return manager.location;
+}
+
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray&lt;CLLocation *&gt; *)locations {
+    // we got the location: stop the run loop to give back the control to getCurrentLocation
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
+    // we failed to get the location: store the error code and
+    // stop the run loop to give back the control to getCurrentLocation
+    _errorCode = error.code;
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+@end
+</code></pre><p><em>In the comments to the code above, I mentioned “run loop”. This is a fairly big topic, and I’m definitely not an expert to discuss it. Refer to Apple’s documentation about <a href="https://developer.apple.com/documentation/corefoundation/1542011-cfrunlooprun?language=objc"><code>CFRunLoopRun</code></a> function and related topics to get the idea about asynchronous programming with Apple’s Foundation framework.</em></p><h2 id=part-3-c>Part 3. C</h2><p>Because we can’t instantiate and use Objective-C classes from cgo, we need a plain C function to be a bridge between Objective-C and Go. It’s time to look at the implementation of <code>get_current_location</code> function, we discussed in Part 1:</p><pre><code>// File location_manager_darwin.m
+
+int get_current_location(Location *loc) {
+    // create an instance of our LocationManager class
+    LocationManager *lm = [[LocationManager alloc] init];
+    // obtain user’s location; the call blocks the thread
+    CLLocation *clloc = [lm getCurrentLocation];
+
+    if (lm.errorCode != 0) {
+        return lm.errorCode;
+    }
+
+    // populate the resulting Location struct from Objective-C object
+    loc-&gt;coordinate = clloc.coordinate;
+    loc-&gt;altitude = clloc.altitude;
+
+    return 0;
+}
+</code></pre><p>After days of browsing Apple’s documentation, SO and GitHub, I got the results I wanted.
+That&rsquo;s how we use it in a Go code:</p><pre><code>package main
+
+func main() {
+    loc, _ := CurrentLocation()
+    fmt.Printf(&quot;got location: latitude %f, logitude %f\n&quot;, loc.Coordinate.Latitude, loc.Coordinate.Longitude)
+}
+</code></pre><p>When running the program in the terminal, macOS shows a popup window with the request to access the device’s location. The program then prints the obtained coordinates to the console (<em>I redacted the real coordinates below with &ldquo;xxxxxx&rdquo;</em>):</p><pre><code>$ go run ./
+got location: latitude 52.xxxxxx, logitude 13.xxxxxx
+</code></pre><p>As I mentioned in the beginning, the code example is on GitHub <a href=https://github.com/narqo/playground-go/tree/master/osx-core-location>https://github.com/narqo/playground-go/tree/master/osx-core-location</a>.</p><p>If you have any comments or suggestions, reach out to me on <a href=https://twitter.com/tvii>Twitter</a>.</p><p>Have fun and stay safe.</p><footer class=article-meta><time datetime=2020-03-30T12:00:00Z>March 30, 2020</time><span class=tag>go</span><span class=tag>cgo</span><span class=tag>objective-c</span><span class=tag>macos</span></footer></article><article class=article data-weight=0><header class=article-head><h2><a href=/notes/2020/01/buildkit-multi-platform-travis-ci/>Building Multi-Platform Docker Images with Travis CI and BuildKit</a></h2></header><p><em>This is a lengthy note. If you don&rsquo;t quite feel reading and only need the working example, go directly to <a href=https://github.com/profefe/profefe/blob/09ff03be6561a7ef88fba7b96d923abd6a413931/.travis.yml>the Travis CI build file</a>.</em></p><p>The more I delve into the world of Raspberry Pi, the more I notice that &ldquo;regular and boring&rdquo; things on ARM are harder than I expected.</p><p>People build and distribute software exclusively for amd64. You read another &ldquo;<em>Kubernetes something</em>&rdquo; tutorial, that went viral on Twitter, and is fancy to try it out. Still, all helm charts, or whatever the author prefered, use Docker images built exclusively for amd64.</p><p>Docker toolchain has added the support for building multi-platform images in 19.x. However, it&rsquo;s available only under the &ldquo;experimental&rdquo; mode. The topic of building multi-platform Docker images yet feels underrepresented.</p><h2 id=but-first-what-are-multi-platform-docker-images>But first, what are multi-platform Docker images?</h2><p>When a client, e.g. Docker client, tries to pull an image, it must negotiate the details about what exactly to pull with the registry. The registry provides a manifest that describes the digest of the requested image, the volumes the image consists of, the platform this image can run on, etc. Optionally, the registry can provide a manifests list, which, as the name suggests, is a list of several manifests bundled into one. With the manifests list in hands, the client can figure out the particular digest of the image it needs to pull.</p><p>So multi-platform Docker images are just several images, whose manifests are bundled into the manifests list.</p><p>Imagine we want to pull the image <a href=https://hub.docker.com/_/golang><code>golang:1.13.6-alpine3.10</code></a>. Docker client will get the manifests list from Dockerhub. This list includes digests of several images, each built for the particular platform. If we&rsquo;re on Raspberry Pi, running the current Raspbian Linux, which is <code>arm/v7</code>, the client will pick the corresponding image&rsquo;s digest. Alternatively, we could choose to pull the image <a href=https://hub.docker.com/r/arm32v7/golang/><code>arm32v7/golang:1.13.6-alpine3.10</code></a> instead, and we ended up with the same image with the <a href=https://hub.docker.com/layers/arm32v7/golang/alpine3.10/images/sha256-d72fa60fb5b9ffc12db9c87340bc9d9f55852570f1efc7d7656f081749a7f0aa>digest <code>d72fa60fb5b9</code></a>. Of course, to use a single universal image name, i.e. <code>golang</code>, on every platform is way more convenient.</p><p>You can read more about manifests <a href=https://docs.docker.com/registry/spec/manifest-v2-2/>in Docker registry documentation</a>.</p><h2 id=does-it-mean-i-need-to-build-different-docker-images-for-each-platform-i-want-to-support>Does it mean I need to build different Docker images, for each platform I want to support?</h2><p>Well, yes. This is how, official images are built.</p><p>For every platform, the image is built and pushed to the registry under the name <code>&lt;platform>/&lt;image>:&lt;tag></code>, e.g. <a href=https://hub.docker.com/r/amd64/golang/><code>amd64/golang:1-alpine</code></a>. And next, a manifests list, that combines all those platform-specific images, is built and pushed with the simple name <code>&lt;image>:&lt;tag></code>.</p><p><a href=https://github.com/moby/buildkit>Docker&rsquo;s BuildKit</a> provides a toolkit that, among other nice things, allows building multi-platform images on a single host. BuildKit is used inside <a href=https://github.com/docker/buildx>Docker&rsquo; buildx project</a>, that is part of the recent Docker version.</p><p>One can use buildx, but, for this post, I wanted to try out, what would it look like to use BuildKit directly. For <a href=https://github.com/profefe/profefe>profefe</a>, the system for continuous profiling of Go services, I set up <a href=https://travis-ci.com/>Travis CI</a>, that builds a multi-platform Docker image and pushes them to Dockerhub.</p><p>profefe is written in Go. That simplifies things, because, thanks to Go compiler, I don&rsquo;t have to think about how to compile code for different platforms. <a href=https://github.com/profefe/profefe/blob/09ff03be6561a7ef88fba7b96d923abd6a413931/contrib/docker/Dockerfile>The same Dockerfile</a> will work fine on every platform.</p><p>Here&rsquo;s how &ldquo;deploy&rdquo; stage of the build job looks like (<a href=https://github.com/profefe/profefe/blob/09ff03be6561a7ef88fba7b96d923abd6a413931/.travis.yml>see <code>travis.yml</code> on profefe&rsquo;s GitHub</a>).</p><pre><code>dist: bionic
 
 language: go
 go:
