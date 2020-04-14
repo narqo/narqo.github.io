@@ -4,11 +4,11 @@
 <a href=https://github.com/narqo>GitHub</a>
 <a href=https://twitter.com/tvii>Twitter</a>
 <a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=main-head><h1>Owner of Logging Context</h1></header><p>There’s the late-night dilemma&mldr;</p><p><strong>Who should be in charge of logging context: a component&rsquo;s owner or the component itself?</strong></p><pre><code>type Logger interface {
-	With(...kvpairs) *Logger
+	With(...kvpairs) Logger
 }
 
 type Storage struct {
-	logger *Logger
+	logger Logger
 }
 
 // OPTION 1: component's owner defines the context of component's logger
@@ -17,7 +17,7 @@ func main() {
 }
 
 // OPTION 2: component itself is in charge of its logging context
-func NewStorage(logger *Logger) (st *Storage) {
+func NewStorage(logger Logger) (st *Storage) {
 	return &amp;Storage{
 		logger: logger.With(&quot;component&quot;, &quot;storage&quot;),
 	}
