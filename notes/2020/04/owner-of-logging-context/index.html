@@ -22,13 +22,18 @@ func NewStorage(logger Logger) (st *Storage) {
 		logger: logger.With(&quot;component&quot;, &quot;storage&quot;),
 	}
 }
-</code></pre><p>Fun fact: a couple months back, we ruined the team&rsquo;s Friday, by debating about a similar topic in the context of (Graphite) metrics namespaces. It has become even more intricate since then :/</p><p><strong>Update (2020-04-15)</strong></p><p>Many people <a href=https://twitter.com/tvii/status/1250166077235048449>on Twitter</a> suggest that <em>Option 1</em> is an obvious choice because only application knows how to name the components. I totally agree with that.</p><p>As I <a href=https://twitter.com/tvii/status/1250298527814529026>wrote later</a>, the <em>real</em> dilemma is not about &ldquo;application and component&rdquo; but about &ldquo;owner of the component&rdquo;. Function <code>main</code>, in the example above, was a silly example, that tried (and failed) to illustrate the question in a code.</p><p>Let&rsquo;s try another (<em>silly</em>) example:</p><pre><code>// there are many (at least ten) different handler in the application
-type Handler1 struct {
-	logger Logger
-}
+</code></pre><p>Fun fact: a couple months back, we ruined the team&rsquo;s Friday, by debating about a similar topic in the context of (Graphite) metrics namespaces. It has become even more intricate since then :/</p><p><strong>Update (2020-04-15)</strong></p><p>Many people <a href=https://twitter.com/tvii/status/1250166077235048449>on Twitter</a> suggest that <em>Option 1</em> is an obvious choice because only application knows how to name the components. I totally agree with that.</p><p>As I <a href=https://twitter.com/tvii/status/1250298527814529026>wrote later</a>, the <em>real</em> dilemma is not about &ldquo;application and component&rdquo; but about &ldquo;owner of the component&rdquo;. Function <code>main</code>, in the example above, was a silly example, that tried (and failed) to illustrate the question in a code.</p><p>Let&rsquo;s try another (<em>silly</em>) example:</p><pre><code>// there are buch of different handlers (maybe ten) in this application
+type Handler1 struct { logger Logger }
 
 func (h *Handler1) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// OPTION 1
+	req := NewRequst(h.logger.With(&quot;component&quot;, &quot;request&quot;), r)
+}
+
+type Handler2 struct { logger Logger }
+
+func (h *Handler2) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// OPTION 1, still
 	req := NewRequst(h.logger.With(&quot;component&quot;, &quot;request&quot;), r)
 }
 
@@ -42,4 +47,4 @@ func NewRequst(logger Logger, *r http.Request) *Request {
 		logger: logger.With(&quot;component&quot;, &quot;request&quot;),
 	}
 }
-</code></pre><p>We, likely, want to have a consistent nomenclature across the logs.</p><p>Is the choice still obvious? ;)</p><p><em>Do you have an opinion? Share it with me <a href=https://twitter.com/tvii/status/1250166077235048449>on Twitter</a></em>.</p><footer class=article-meta><time datetime=2020-04-14T12:00:00Z>April 14, 2020</time></footer></main><footer class=main-footer>© 2020 #SocialDistancing</footer><script type=text/javascript>(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");ym(61655782,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});</script><noscript><div><img src=https://mc.yandex.ru/watch/61655782 style=position:absolute;left:-9999px alt></div></noscript></body></html>
+</code></pre><p>We want to have a consistent nomenclature across the application&rsquo;s logs.</p><p>Is the choice still obvious? ;)</p><p><em>Do you have an opinion? Share it with me <a href=https://twitter.com/tvii/status/1250166077235048449>on Twitter</a></em>.</p><footer class=article-meta><time datetime=2020-04-14T12:00:00Z>April 14, 2020</time></footer></main><footer class=main-footer>© 2020 #SocialDistancing</footer><script type=text/javascript>(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");ym(61655782,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});</script><noscript><div><img src=https://mc.yandex.ru/watch/61655782 style=position:absolute;left:-9999px alt></div></noscript></body></html>
