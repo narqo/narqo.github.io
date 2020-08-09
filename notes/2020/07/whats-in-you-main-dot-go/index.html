@@ -3,33 +3,21 @@
 <a href=/publications/>Publications</a>
 <a href=https://github.com/narqo>GitHub</a>
 <a href=https://twitter.com/tvii>Twitter</a>
-<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=article-head><h1>What's in your main-dot-go? (aka New Go Project Boilerplate)</h1></header><p>Sometimes I write small services in Go from scratch. And every time <code>main.go</code> ends up looking almost the same:</p><pre><code>package main
-
-import (
-	&quot;context&quot;
-	&quot;flag&quot;
-	&quot;log&quot;
-	&quot;os&quot;
-	&quot;os/signal&quot;
-	&quot;syscall&quot;
-	&quot;time&quot;
-)
-
-func main() {
+<a href=https://keybase.io/varankinv>Keybase</a></nav><main class=main-content><header class=article-head><h1>What's in your main-dot-go? (aka New Go Project Boilerplate)</h1></header><p>Sometimes I write small services in Go from scratch. And every time <code>main.go</code> ends up looking almost the same:</p><pre><code>func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sigc := make(chan os.Signal, 2)
-	signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
+	sigs := make(chan os.Signal, 2)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		&lt;-sigc
-		signal.Stop(sigc)
+		&lt;-sigs
+		signal.Stop(sigs)
 		cancel()
 	}()
 
 	if err := run(ctx, os.Args[1:]); err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 }
 
@@ -49,7 +37,7 @@ func run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	// TODO: define the handler, the routing, and wire the dependencies
+	// TODO: define the handler, the routing, and wire the dependencies with the main context
 	mux := http.NewServeMux()
 	server := &amp;http.Server{
 			Addr:    conf.HTTPAddr,
