@@ -31,7 +31,7 @@ LINE 1: insert into logs values ('{&quot;resp&quot;:&quot;GIF89a\u0001\u0000\u00
                                  ^
 DETAIL:  \u0000 cannot be converted to text.
 CONTEXT:  JSON data, line 1: {&quot;resp&quot;:...
-</code></pre><p>Because in my case, there were only a couple of places where I can’t control the actual data, that ends up into a span, the way I’ve chosen to handle that was by introducing a separate wrapper type, that implements <code>json.Marshaller</code>. The wrapper checks the data is a valid UTF-8 sequence and doesn’t contain <code>NULL</code> character before it marshals the data into a JSON string. If the data is not a valid UTF-8, the marshalelr sees it as a binary data and base64-encodes it:</p><pre><code>// RawText handles invalid UTF-8 and NULL-bytes, encoding them as base64-string.
+</code></pre><p>Because in my code, there were only a couple of places where I didn&rsquo;t control the actual data, that went into a span, the way I’ve chosen to handle that was by introducing a wrapper type, that implements <code>json.Marshaller</code>. The wrapper checks the value is a valid UTF-8 sequence and doesn’t contain <code>NULL</code> character before it marshals the value into a JSON string. If the value is not a valid UTF-8, the marshaller sees it as a binary data and base64-encodes it.</p><pre><code>// RawText handles invalid UTF-8 and NULL-bytes, encoding them as base64-string.
 // Because we have to make sure the resulting JSON will be compatible with Postgres's jsonb,
 // we must use RawText when we don't control the data, e.g. when log the error from an external API.
 // Refer to https://www.postgresql.org/docs/10/datatype-json.html
@@ -46,7 +46,7 @@ func (v RawText) MarshalEasyJSON(w *Writer) {
         w.Raw(json.Marshal([]byte(v)))
     }
 }
-</code></pre><p>Note, the code above is a custom marshaller for <a href=https://github.com/mailru/easyjson>https://github.com/mailru/easyjson</a>.</p><pre><code>func main() {
+</code></pre><p>Note, the code above is a marshaller for <a href=https://github.com/mailru/easyjson>github.com/mailru/easyjson</a>, which we use in the project.</p><pre><code>func main() {
     v, _ := json.Marshal(struct {
         Resp1 interface{} `json:&quot;resp1,omitempty&quot;`
         Resp2 interface{} `json:&quot;resp2,omitempty&quot;`
