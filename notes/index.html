@@ -33,7 +33,7 @@ DETAIL:  \u0000 cannot be converted to text.
 CONTEXT:  JSON data, line 1: {&quot;resp&quot;:...
 </code></pre><p>Because in my case, there were only a couple of places where I can’t control the actual data, that ends up into a span, the way I’ve chosen to handle that was by introducing a separate wrapper type, that implements <code>json.Marshaller</code>. The wrapper checks the data is a valid UTF-8 sequence and doesn’t contain <code>NULL</code> character before it marshals the data into a JSON string. If the data is not a valid UTF-8, the marshalelr sees it as a binary data and base64-encodes it:</p><pre><code>// RawText handles invalid UTF-8 and NULL-bytes, encoding them as base64-string.
 // Because we have to make sure the resulting JSON will be compatible with Postgres's jsonb,
-// we must use RawText in the context when we don't control the data, e.g. when logging the error from an external API.
+// we must use RawText when we don't control the data, e.g. when log the error from an external API.
 // Refer to https://www.postgresql.org/docs/10/datatype-json.html
 type RawText []byte
 
