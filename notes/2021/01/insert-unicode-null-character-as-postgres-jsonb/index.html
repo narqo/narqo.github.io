@@ -46,13 +46,13 @@ func (v RawText) MarshalEasyJSON(w *Writer) {
         w.Raw(json.Marshal([]byte(v)))
     }
 }
-</code></pre><p>Note, the code above is a marshaller for <a href=https://github.com/mailru/easyjson>github.com/mailru/easyjson</a>, which we use in the project.</p><pre><code>func main() {
+</code></pre><p>Note, the code above is a marshaller for <a href=https://github.com/mailru/easyjson>github.com/mailru/easyjson</a>, which we use in the project.</p><p>Here is how it looks in practice:</p><pre><code>func main() {
     v, _ := json.Marshal(struct {
         Resp1 interface{} `json:&quot;resp1,omitempty&quot;`
         Resp2 interface{} `json:&quot;resp2,omitempty&quot;`
     }{
-        Resp1: RawText(bin), // I wrap the bin data into RawText here
-        Rest2: RawText(`normal string`),
+        Resp1: RawText(bin),             // wrap the bin data into RawText
+        Rest2: RawText(&quot;normal string&quot;), // wrap (copy) a string into RawText
     })
     fmt.Printf(&quot;%s\n&quot;, v)
     // Output:
