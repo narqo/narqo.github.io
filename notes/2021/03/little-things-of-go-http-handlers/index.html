@@ -92,7 +92,7 @@ func (h *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) error 
 
     accID, err := h.datastore.GetAccountByEmail(ctx, req.Email)
     if errors.Is(err, ErrNotExists) {
-        return StatusError(http.StatusForbidden, &quot;account does not exists&quot;, err)
+        return StatusError(http.StatusForbidden, &quot;account does not exist&quot;, err)
     }
     if err != nil {
         return fmt.Errorf(&quot;get account for %q: %w&quot;, req.Email, err)
