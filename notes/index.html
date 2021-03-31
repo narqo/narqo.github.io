@@ -90,12 +90,12 @@ func (h *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) error 
         return StatusError(http.StatusBadRequest, &quot;email is required&quot;, nil)
     }
 
-    accID, err := h.datastore.GetAccountByEmail(ctx, login.Email)
+    accID, err := h.datastore.GetAccountByEmail(ctx, req.Email)
     if errors.Is(err, ErrNotExists) {
         return StatusError(http.StatusForbidden, &quot;account does not exists&quot;, err)
     }
     if err != nil {
-        return fmt.Errorf(&quot;get account for %q: %w&quot;, login.Email, err)
+        return fmt.Errorf(&quot;get account for %q: %w&quot;, req.Email, err)
     }
 
     resp := struct {
