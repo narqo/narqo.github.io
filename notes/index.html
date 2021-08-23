@@ -28,6 +28,57 @@
 <header class=main-head>
 <h1>Notes</h1>
 </header>
+<article class=article data-weight=0 data-word-count=400 data-reading-time=2>
+<header class=section-head>
+<h2><a href=/notes/2021/08/one-step-closer-to-tabless-workflow/>One step closer to "Tabless" workflow</a></h2>
+</header>
+<p>Many years ago I embraced &ldquo;tabless&rdquo; development workflow: I use buffers, when I&rsquo;m in Vim; I also switch tabs off in both Goland and VS Code, as the first thing after I install the IDEs to a new laptop.</p>
+<p>I&rsquo;m trying the same with Firefox web-browser now:</p>
+<figure><img src=/images/2021/firefox-91-2021.jpg alt="Tabless Firefox 91" width=1100>
+</figure>
+<ol>
+<li>
+<p>Enable <code>toolkit.legacyUserProfileCustomizations.stylesheets</code> switch in Firefox&rsquo;s config (via <code>about:config</code> page or inside <code>user.js</code>).</p>
+</li>
+<li>
+<p>Place the styles below into <code>%PROFILE%/chrome/userChrome.css</code> (I pick the actual path to the profile directory from Firefox&rsquo;s <code>about:support</code> page).</p>
+</li>
+</ol>
+<pre><code>// Hide the tabs.
+// Beware that hidding the tabs with &quot;display: none&quot; will ruine you browser's recent history,
+// I've learned that in a hard way ;)
+#TabsToolbar &gt; .toolbar-items {
+    opacity: 0;
+    pointer-events: none;
+}
+
+// Pull the navigation bar up, on top of the empty space, that left after we'd hidden the tabs.
+#nav-bar {
+    margin-top: calc((7px + var(--tab-min-height)) * -1);
+}
+
+// On macOS, when not in full screen, shift the urlbar's panel to the right,
+// after close-minimise-expand buttons.
+:root:not([inFullscreen]) #nav-bar-customization-target {
+    margin-left: 65px;
+}
+</code></pre><p>I looked at <a href=https://searchfox.org/mozilla-central/source/browser/base/content>mozilla-central/··/navigator-toolbox.inc.xhtml</a> to get the structure of Firefox&rsquo;s UI.</p>
+<ol start=3>
+<li>
+<p>Pick some nice and clean theme. My kudos to <a href=https://addons.mozilla.org/en-GB/firefox/addon/safari-macos-monterey-light/>Safari - MacOS Monterey Light</a> by a person nicknamed <a href=https://addons.mozilla.org/en-GB/firefox/user/16761237/>notcat</a>.</p>
+</li>
+<li>
+<p>(<em>Optional</em>) In Firefox&rsquo;s &ldquo;General&rdquo; preferences, switch off &ldquo;Ctrl+Tab circles through tabs&rdquo;. With that, pressing Ctrl+Tab exposes all currently open pages (similar to how on macOS or other OS one switches between the opened applications with ⌘+Tab).</p>
+</li>
+</ol>
+<hr>
+<p>Overall I&rsquo;m fairly happy with how it ended up. Although, some things aren&rsquo;t quite ideal yet (might add more as I use this setup):</p>
+<p>I wish there was a shortkey to enter a &ldquo;modal mode&rdquo;, where I could filter the list of open pages, to search for a particular page, and to switch to this page. Something similar to <code>:ls</code> command in Vim, or ⌘+E in Goland. I can use Firefox&rsquo;s &ldquo;Search amongst Tabs&rdquo; for that (press ⌘+L to focus into the URL bar, and querying with &ldquo;%[space]") but that requires some getting used to.</p>
+<p>Firefox has &ldquo;Show all tabs&rdquo; button (Ctrl+Shift+Tab) but the way it works, at least in Firefox 91, is very confusing and random. It seems to me, its behaviour is tightly coupled to the browser&rsquo;s Tab UI.</p>
+<footer class=meta>
+<time datetime=2021-08-23T12:00:00Z>August 23, 2021</time><a class=tag href=/tags/firefox/>firefox</a><a class=tag href=/tags/ui/>ui</a><a class=tag href=/tags/random/>random</a>
+</footer>
+</article>
 <article class=article data-weight=0 data-word-count=500 data-reading-time=3>
 <header class=section-head>
 <h2><a href=/notes/2021/07/self-signed-certificates-with-k3s-and-cert-manager/>Self-signed certificates with k3s and cert-manager</a></h2>
