@@ -36,7 +36,7 @@
 </blockquote>
 <p>In my case, a Go backend inserts tracing logs to Postgres. A trace consists of multiple “spans”, some of which can contain the reply from an external API. As we found out, sometimes, in the event of a failure, the API replies with an empty GIF &lt;<em>facepalm/</em>>. Our backend converts the response to a string, marshals it to a JSON and later tries to insert the JSON into a Postgres table.</p>
 <p>Consider the following Go code:</p>
-<pre><code>// data is an empty GIF
+<pre tabindex=0><code>// data is an empty GIF
 var data = []byte{
     0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00,
     0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -57,7 +57,7 @@ func main() {
     // {&quot;resp&quot;:&quot;GIF89a\u0001\u0000\u0001\u0000\ufffd\···\u0001D\u0000;&quot;}
 }
 </code></pre><p>Above, <code>json.Marshal</code> produces a perfectly valid JSON. But if I try to insert it into a Postgres table as <code>jsonb</code>, the insert fails with “unsupported Unicode escape sequence”:</p>
-<pre><code>= CREATE TABLE logs (data jsonb);
+<pre tabindex=0><code>= CREATE TABLE logs (data jsonb);
 = INSERT INTO logs VALUES ('{&quot;resp&quot;:&quot;GIF89a\u0001\u0000\u0001\u0000\ufffd\···\u0001D\u0000;&quot;}');
 
 ERROR:  unsupported Unicode escape sequence
@@ -66,7 +66,7 @@ LINE 1: insert into logs values ('{&quot;resp&quot;:&quot;GIF89a\u0001\u0000\u00
 DETAIL:  \u0000 cannot be converted to text.
 CONTEXT:  JSON data, line 1: {&quot;resp&quot;:...
 </code></pre><p>Because in my code, there were only a couple of places where I didn&rsquo;t control the actual data, that went into a span, the way I’ve chosen to handle that was by introducing a wrapper type, that implements <code>json.Marshaller</code>. The wrapper checks the value is a valid UTF-8 sequence and doesn’t contain <code>NULL</code> character before it marshals the value into a JSON string. If the value is not a valid UTF-8, the marshaller sees it as a binary data and base64-encodes it.</p>
-<pre><code>// RawText handles invalid UTF-8 and NULL-bytes, encoding them as base64-string.
+<pre tabindex=0><code>// RawText handles invalid UTF-8 and NULL-bytes, encoding them as base64-string.
 // Because we have to make sure the resulting JSON will be compatible with Postgres's jsonb,
 // we must use RawText when we don't control the data, e.g. when log the error from an external API.
 // Refer to https://www.postgresql.org/docs/10/datatype-json.html
@@ -83,7 +83,7 @@ func (v RawText) MarshalEasyJSON(w *Writer) {
 }
 </code></pre><p>Note, the code above is a marshaller for <a href=https://github.com/mailru/easyjson>github.com/mailru/easyjson</a>, which we use in the project.</p>
 <p>Here is how it looks in practice:</p>
-<pre><code>func main() {
+<pre tabindex=0><code>func main() {
     v, _ := json.Marshal(struct {
         Resp1 interface{} `json:&quot;resp1,omitempty&quot;`
         Resp2 interface{} `json:&quot;resp2,omitempty&quot;`

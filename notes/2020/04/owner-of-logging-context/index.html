@@ -31,7 +31,7 @@
 </header>
 <p>There’s the late-night dilemma&mldr;</p>
 <p><strong>Who should be in charge of logging context: a component&rsquo;s owner or the component itself?</strong></p>
-<pre><code>type Logger interface {
+<pre tabindex=0><code>type Logger interface {
 	With(...kvpairs) Logger
 }
 
@@ -55,7 +55,7 @@ func NewStorage(logger Logger) (st *Storage) {
 <p>Many people <a href=https://twitter.com/tvii/status/1250166077235048449>on Twitter</a> suggest that <em>Option 1</em> is an obvious choice because only application knows how to name the components. I totally agree with that.</p>
 <p>As I <a href=https://twitter.com/tvii/status/1250298527814529026>wrote later</a>, the <em>real</em> dilemma is not about &ldquo;application and component&rdquo; but about &ldquo;owner of the component&rdquo;. Function <code>main</code>, in the example above, was a silly example, that tried (and failed) to illustrate the question in a code.</p>
 <p>Let&rsquo;s try another (<em>silly</em>) example:</p>
-<pre><code>// there are buch of different handlers (maybe ten) in this application
+<pre tabindex=0><code>// there are buch of different handlers (maybe ten) in this application
 type Handler1 struct { logger Logger }
 
 func (h *Handler1) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -31,7 +31,7 @@
 </header>
 <p>Every time I sketch an HTTP API in Go, I wrap the code of request handlers around these small but very convenient bits.</p>
 <p>My handlers are methods or functions, that serve a request and, either write a (<em>positive</em>) response or return an error.</p>
-<pre><code>// HandlerFunc is an HTTP handler function, that handles an HTTP request.
+<pre tabindex=0><code>// HandlerFunc is an HTTP handler function, that handles an HTTP request.
 // It writes the response to http.ResponseWriter or returns an error.
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
 
@@ -46,7 +46,7 @@ func Handler(h HandlerFunc) http.Handler {
     })
 }
 </code></pre><p>An error returned from <code>HandlerFunc</code> can be an indicator of a failure in request processing, <code>statusError</code>, or a general &ldquo;something didn&rsquo;t work&rdquo;-error. The later can contain the internal details, that the API must never expose to the user.</p>
-<pre><code>// StatusError wraps an error err and contains the suggestion regarding to
+<pre tabindex=0><code>// StatusError wraps an error err and contains the suggestion regarding to
 // how the error should be communicated to the user.
 //
 // code must be a valid HTTP status code; text is the message to reply to user.
@@ -72,7 +72,7 @@ func (s statusError) Unwrap() error {
     return s.Err
 }
 </code></pre><p><code>handleError</code> is a helper function, which makes sure all errors returned from <code>HandlerFunc</code> are handled and replied to the user consistently. The internal details — the cause of the error — aren&rsquo;t exposed to the user, but the helper can provide a unified logging and metrics, which would be convenient when debugging the error later:</p>
-<pre><code>var ErrNotFound = StatusError(http.StatusNotFound, &quot;Nothing found&quot;, nil)
+<pre tabindex=0><code>var ErrNotFound = StatusError(http.StatusNotFound, &quot;Nothing found&quot;, nil)
 
 func handleError(w http.ResponseWriter, r *http.Request, err error) {
     var statusErr *statusError
@@ -93,7 +93,7 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
     }
 }
 </code></pre><p><code>replyJSON</code> is a helper function, which writes a JSON string to <code>http.ResponseWriter</code>, setting the proper HTTP headers.</p>
-<pre><code>func replyJSON(w http.ResponseWriter, v interface{}, code int) {
+<pre tabindex=0><code>func replyJSON(w http.ResponseWriter, v interface{}, code int) {
     w.Header().Set(&quot;Content-Type&quot;, &quot;application/json&quot;)
     w.WriteHeader(code)
     err := json.NewEncoder(w).Encode(v)
@@ -103,7 +103,7 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 }
 </code></pre><p>How does it look in practice?</p>
 <p>Below is an extract from a hypothetical API, with one single route <code>/api/login</code>, that takes an email, and replies with JSON, that contains this account&rsquo;s ID.</p>
-<pre><code>func setupRoutes(mux *http.ServeMux) {
+<pre tabindex=0><code>func setupRoutes(mux *http.ServeMux) {
     authHandler := NewAuthHandler(···)
     mux.Handle(&quot;/api/login&quot;, Handler(authHandler.HandleLogin))
 }

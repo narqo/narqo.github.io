@@ -37,7 +37,7 @@ If there is a KV-pair that has several values, e.g. &ldquo;Via&rdquo; header, Ad
 <h1>Go's net/http.Headers</h1>
 </header>
 <p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with extra specific methods. A usual way to initialize and populate such data-structure from an external representation is something like that:</p>
-<pre><code>type Header map[string][]string
+<pre tabindex=0><code>type Header map[string][]string
 
 func (h Header) Add(key, val string) {
     if val == &quot;&quot; {
@@ -58,7 +58,7 @@ func main() {
 HTTP server, or Go 1.13’s new <a href=https://golang.org/pkg/net/http/#Header.Clone><code>net/http.Header.Clone()</code></a>, it turned out they solve the problem quite elegantly.</p>
 <p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.</p>
 <p>Knowing that, we can refactor the initial <code>Header.Add</code> as the following:</p>
-<pre><code>type Header map[string][]string
+<pre tabindex=0><code>type Header map[string][]string
 
 func (h Header) add(vv []string, key, val string) []string {
     if val == &quot;&quot; { ··· }

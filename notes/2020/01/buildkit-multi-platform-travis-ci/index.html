@@ -45,7 +45,7 @@
 <p>One can use buildx, but, for this post, I wanted to try out, what would it look like to use BuildKit directly. For <a href=https://github.com/profefe/profefe>profefe</a>, the system for continuous profiling of Go services, I set up <a href=https://travis-ci.com/>Travis CI</a>, that builds a multi-platform Docker image and pushes them to Dockerhub.</p>
 <p>profefe is written in Go. That simplifies things, because, thanks to Go compiler, I don&rsquo;t have to think about how to compile code for different platforms. <a href=https://github.com/profefe/profefe/blob/09ff03be6561a7ef88fba7b96d923abd6a413931/contrib/docker/Dockerfile>The same Dockerfile</a> will work fine on every platform.</p>
 <p>Here&rsquo;s how &ldquo;deploy&rdquo; stage of the build job looks like (<a href=https://github.com/profefe/profefe/blob/09ff03be6561a7ef88fba7b96d923abd6a413931/.travis.yml>see <code>travis.yml</code> on profefe&rsquo;s GitHub</a>).</p>
-<pre><code>dist: bionic
+<pre tabindex=0><code>dist: bionic
 
 language: go
 go:
@@ -88,22 +88,22 @@ jobs:
 <p>We run the builds under Ubuntu 18.04 (Bionic Beaver). To be able to build multi-platform images on a single amd64 host, BuildKit uses QEMU to emulate other platforms. That requires Linux kernel 4.8, so even Ubuntu 16.04 (Xenial Xerus) should work.</p>
 <p>The top-level details on how the emulation works are very well described in <a href=https://www.kernel.org/doc/html/latest/admin-guide/binfmt-misc.html>https://www.kernel.org/doc/html/latest/admin-guide/binfmt-misc.html</a></p>
 <p>In short, we tell the component of the kernel (<code>binfmt_misc</code>) to use QEMU when the system executes a binaries built for a different platform. The following call in the &ldquo;install&rdquo; step is what&rsquo;s doing that:</p>
-<pre><code>- docker container run --rm --privileged multiarch/qemu-user-static --reset -p yes
+<pre tabindex=0><code>- docker container run --rm --privileged multiarch/qemu-user-static --reset -p yes
 </code></pre><p>Under the hood, the container runs a <a href=https://raw.githubusercontent.com/qemu/qemu/master/scripts/qemu-binfmt-conf.sh>shell script from QEMU project</a>, that registers the emulator as an executor of binaries from the external platforms.</p>
 <blockquote>
 <p>If you think, that running a docker container to do the manipulations with the host&rsquo;s OS looks weird, well&mldr; I can&rsquo;t agree more. Probably, a better approach would be to install <a href=https://packages.ubuntu.com/bionic/qemu-user-static>qemu-user-static</a>, which would do the proper setup. Unfortunately, the current package&rsquo;s version for Ubuntu Bionic doesn&rsquo;t do the registration as we need it. I.e. its post-install doesn&rsquo;t add the <code>"F"</code> flag (&ldquo;fix binaries&rdquo;), which is crucial for our goal. Let&rsquo;s just agree,that docker-run will do ok for the demonstrational purpose.</p>
 </blockquote>
-<pre><code>- docker container run -d --rm --name buildkitd --privileged moby/buildkit:latest
+<pre tabindex=0><code>- docker container run -d --rm --name buildkitd --privileged moby/buildkit:latest
 - sudo docker container cp buildkitd:/usr/bin/buildctl /usr/local/bin/
 - export BUILDKIT_HOST=&quot;docker-container://buildkitd&quot;
 </code></pre><p>This is another &ldquo;docker-run&rsquo;ism&rdquo;. We start BuildKit&rsquo;s <code>buildkitd</code> daemon inside the container, attaching it to the Docker daemon that runs on the host (&ldquo;privileged&rdquo; mode). Next, we copy <code>buildctl</code> binary from the container to the host system and set <code>BUILDKIT_HOST</code> environment variable, so <code>buildctl</code> knew where its daemon runs.</p>
 <blockquote>
 <p>Alternatively, we could install BuildKit from GitHub and run the daemon directly on the build host. YOLO.</p>
 </blockquote>
-<pre><code>before_deploy:
+<pre tabindex=0><code>before_deploy:
   - echo &quot;$DOCKER_PASSWORD&quot; | docker login --username &quot;$DOCKER_USERNAME&quot; --password-stdin
 </code></pre><p>To be able to push the images to the registry, we need to log in providing Docker credentials to host&rsquo;s Docker daemon. The credentials are set as Travis CI&rsquo;s encrypted environment variables ([refer to Travis CI docs])](<a href=https://docs.travis-ci.com/user/environment-variables/))>https://docs.travis-ci.com/user/environment-variables/))</a>.</p>
-<pre><code>buildctl build \
+<pre tabindex=0><code>buildctl build \
   --progress=plain \
   --frontend=dockerfile.v0 \
   --local context=. --local dockerfile=. \

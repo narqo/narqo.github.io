@@ -52,7 +52,7 @@ After years of episodic discussions, a collegue of mine assembled the list of di
 <ul>
 <li>Comparison</li>
 </ul>
-<pre><code>if string(b) == &quot;foo&quot; { ··· }
+<pre tabindex=0><code>if string(b) == &quot;foo&quot; { ··· }
 </code></pre><p>In the code above, <code>b []byte</code> also won&rsquo;t be copied.</p>
 <hr>
 <p>There are still cases where compiler can&rsquo;t optimise the code for us. In some of those cases
@@ -62,7 +62,7 @@ ways of performing the trick, but none of them seems &ldquo;the one that must be
 <p>After years of episodic discussions, a collegue of mine assembled the list of different conserns and about
 the proper way of doing it (<em>see &ldquo;<a href=https://groups.google.com/d/topic/golang-nuts/Zsfk-VMd_fU/discussion>unsafe conversion between string &lt;-> []byte</a>&rdquo; topic on golang-nuts forum</em>).
 Thanks to replies from Go team, our most valid way of doing it is following:</p>
-<pre><code>// Refer to github.com/fmstephe/unsafeutil
+<pre tabindex=0><code>// Refer to github.com/fmstephe/unsafeutil
 
 type stringHeader struct {
 	data      unsafe.Pointer

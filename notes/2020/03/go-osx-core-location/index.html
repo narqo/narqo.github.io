@@ -35,7 +35,7 @@
 <p><em>The code might illustrate the example better than my English ;) Feel free to jump right into <a href=https://github.com/narqo/playground-go/tree/master/osx-core-location>the repo on GitHub</a>.</em></p>
 <h2 id=part-1-go>Part 1. Go</h2>
 <p>Let’s start with the Go code</p>
-<pre><code>// File location_manager_darwin.go
+<pre tabindex=0><code>// File location_manager_darwin.go
 
 /* #import &quot;location_manager_darwin.h&quot; */
 import &quot;C&quot;
@@ -54,7 +54,7 @@ func CurrentLocation() (Location, error) {
 }
 </code></pre><p>Function <code>CurrentLocation</code> calls C function <code>get_current_location</code>, expecting it to either populate the C structure <code>C.Location</code> or return a non-zero error code.</p>
 <p><code>get_current_location</code> is a plain-C function, that acts as a glue layer between Objective-C and Go. The function and the <code>C.Location</code> type are described in the header file, which we import with <code>#import "location_manager_darwin.h"</code> in the cgo directive. We will implement the function later in this note. For now, the definition of the function from the header:</p>
-<pre><code>// File location_manager_darwin.h
+<pre tabindex=0><code>// File location_manager_darwin.h
 
 // Location struct represents the location data
 // from Apple's CLLocation object.
@@ -67,7 +67,7 @@ typedef struct _Location {
 
 int get_current_location(Location *loc);
 </code></pre><p><em>To compile the code we need two more cgo directives:</em></p>
-<pre><code>// File location_manager_darwin.go
+<pre tabindex=0><code>// File location_manager_darwin.go
 
 /*
 #cgo CFLAGS: -x objective-c -mmacosx-version-min=10.14
@@ -81,7 +81,7 @@ import &quot;C&quot;
 <p>As I said earlier, getting the user’s location requires writing some Objective-C.</p>
 <p>To get the actual location we need an instance of <a href="https://developer.apple.com/documentation/corelocation/cllocationmanager?language=objc">Apple&rsquo;s <code>CLLocationManager</code> class</a>, whose delegate (<code>CLLocationManagerDelegate</code>) will receive the location events. For some degree, delegates in Objective-C are similar to interfaces in Go. That is, delegate is a class that must implement some methods, that will be invoked by the delegate’s owner.</p>
 <p>To keep things simple, I implemented a class, <code>LocationManager</code>, that&rsquo;s responsible for instantiating <code>CLLocationManager</code> and, at the same time, is the implementation of the delegate protocol:</p>
-<pre><code>// File location_manager_darwin.m
+<pre tabindex=0><code>// File location_manager_darwin.m
 
 @interface LocationManager : NSObject &lt;CLLocationManagerDelegate&gt;
 {
@@ -111,7 +111,7 @@ import &quot;C&quot;
 }
 </code></pre><p><code>CLLocationManager</code> provides <a href><code>requestLocation</code></a> method, that, <em>as the name suggests</em>, requests the user’s geolocation. The method is asynchronous; on the first call, the OS’s location service will fire a macOS&rsquo;s modal dialogue, asking the user if they allow the application to access their location.</p>
 <p>Below, method <code>getCurrentLocation</code> requests the geolocation and stops the invocation, waiting for events from OS’s location services to reach the delegate. The method then returns the location object (<a href="https://developer.apple.com/documentation/corelocation/cllocation?language=objc"><code>CLLocation</code></a>) to the caller:</p>
-<pre><code>// File location_manager_darwin.m
+<pre tabindex=0><code>// File location_manager_darwin.m
 
 @implementation LocationManager
 
@@ -147,7 +147,7 @@ import &quot;C&quot;
 </code></pre><p><em>In the comments to the code above, I mentioned “run loop”. This is a fairly big topic, and I’m definitely not an expert to discuss it. Refer to Apple’s documentation about <a href="https://developer.apple.com/documentation/corefoundation/1542011-cfrunlooprun?language=objc"><code>CFRunLoopRun</code></a> function and related topics to get the idea about asynchronous programming with Apple’s Foundation framework.</em></p>
 <h2 id=part-3-c>Part 3. C</h2>
 <p>Because we can’t instantiate and use Objective-C classes from cgo, we need a plain C function to be a bridge between Objective-C and Go. It’s time to look at the implementation of <code>get_current_location</code> function, we discussed in Part 1:</p>
-<pre><code>// File location_manager_darwin.m
+<pre tabindex=0><code>// File location_manager_darwin.m
 
 int get_current_location(Location *loc) {
     // create an instance of our LocationManager class
@@ -167,14 +167,14 @@ int get_current_location(Location *loc) {
 }
 </code></pre><p>After days of browsing Apple’s documentation, SO and GitHub, I got the results I wanted.
 That&rsquo;s how we use it in a Go code:</p>
-<pre><code>package main
+<pre tabindex=0><code>package main
 
 func main() {
     loc, _ := CurrentLocation()
     fmt.Printf(&quot;got location: latitude %f, logitude %f\n&quot;, loc.Coordinate.Latitude, loc.Coordinate.Longitude)
 }
 </code></pre><p>When running the program in the terminal, macOS shows a popup window with the request to access the device’s location. The program then prints the obtained coordinates to the console (<em>I redacted the real coordinates below with &ldquo;xxxxxx&rdquo;</em>):</p>
-<pre><code>$ go run ./
+<pre tabindex=0><code>$ go run ./
 got location: latitude 52.xxxxxx, logitude 13.xxxxxx
 </code></pre><p>As I mentioned in the beginning, the code example is on GitHub <a href=https://github.com/narqo/playground-go/tree/master/osx-core-location>https://github.com/narqo/playground-go/tree/master/osx-core-location</a>.</p>
 <p>If you have any comments or suggestions, reach out to me on <a href=https://twitter.com/tvii/status/1244545676622680069>Twitter</a>.</p>

@@ -52,16 +52,16 @@
 <p>In order to provide the access from the cluster&rsquo;s LAN to the internet, the gateway sets NAT (IP masquerading and IPv4 routing). There are a ton of articles on how to configure that for Raspberry Pi (e.g. &ldquo;<a href=https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md>Setting up a Raspberry Pi as a routed wireless access point</a>") — I will skip this part.</p>
 <p>However, there are several annoying things about this setup (and about NAT in particular):</p>
 <p>I can&rsquo;t connect to <code>pi-4x</code> hosts directly from my laptop, which lives on the main home network. That is, if I want to SSH to <code>pi-41</code>, I either have to use <code>pi-31</code> as a jump host:</p>
-<pre><code>$ ssh -J pi@192.168.10.31 pi@192.168.20.41
+<pre tabindex=0><code>$ ssh -J pi@192.168.10.31 pi@192.168.20.41
 </code></pre><p>Or, I need to define the static route on the laptop system&rsquo;s routing table. On macOS I did that with the following command:</p>
-<pre><code>$ sudo route -n add 192.168.20.0/24 192.168.10.31
+<pre tabindex=0><code>$ sudo route -n add 192.168.20.0/24 192.168.10.31
 </code></pre><p><em>As I mentioned above, my router doesn&rsquo;t let me configure static routes, so I had to do it on all device from where I needed to access <code>pi-4x</code> hosts.</em></p>
 <p>Second, mDNS doesn&rsquo;t work, even though every RPi-host runs <code>avahi-daemon</code>. That is, in the SSH example above, I had to use host&rsquo;s IP address instead of simply <code>ssh pi-41.local</code>.</p>
 <p>Last, IPv6 internet doesn&rsquo;t work from the cluster. I could set NATv6 on the gateway, in the same manner I set it for IPv4 addresses, but that feels boring :)</p>
 <h2 id=fixing-the-lack-of-ipv6-internet-inside-the-cluster>Fixing the lack of IPv6 internet inside the cluster</h2>
 <p>The Wi-Fi router gives us <code>/64</code> GUA prefix. I divided it into a smaller subnet <code>2001:db8:abc:123:40::/76</code> and gave the IPs from this subnet to <code>pi-4x</code> hosts. SLAAC isn&rsquo;t the option for subnets smaller than <code>/64</code> so I had to assign a global IPv6 address from the chosen prefix to each worker host statically.</p>
 <p>Observe that each host&rsquo;s <code>eth0</code> has three IPv6 addresses (<em>I&rsquo;ve omitted the output for <code>pi-43</code> and <code>pi-44</code> for brevity</em>):</p>
-<pre><code>pi@pi-41: $ ip -6 addr show eth0
+<pre tabindex=0><code>pi@pi-41: $ ip -6 addr show eth0
 2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 state UP qlen 1000
     inet6 fd2f:4a6d:83e5:1:deb0:7ee0:4d1:b11a/64 2️⃣ scope global dynamic {··}
     inet6 2001:db8:abc:123:41::1/80 3️⃣ scope global noprefixroute {··}
@@ -78,7 +78,7 @@ pi@pi-42: ip -6 addr show eth0
 <li>a global address, I configured manually <code>2001:db8:abc:123:4X::1/80</code>, where <code>X</code> is the number, matched with the <code>x</code> in <code>pi-4x</code> (I&rsquo;ve set the address with <code>/80</code> prefix, but that isn&rsquo;t important here).</li>
 </ol>
 <p>When a <code>pi-4x</code> host autoconfigures its ULA address it also sets the default IPv6 route with the link-local address of the gateway:</p>
-<pre><code>pi@pi-31: $ ip -6 addr show eth0
+<pre tabindex=0><code>pi@pi-31: $ ip -6 addr show eth0
 2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 state UP qlen 1000
     ···
     inet6 fe80::b139:44c0:f524:eed5/64 1️⃣ scope link
@@ -92,7 +92,7 @@ default via fe80::b139:44c0:f524:eed5 2️⃣ dev eth0 proto ra metric 202 mtu 1
 <p><code>ndppd</code> is a daemon that proxies certain IPv6 NDP messages between two or more interfaces.</p>
 </blockquote>
 <p>The config in <code>/etc/ndppd.conf</code> makes <code>pi-31</code>, who has the direct connection to the Wi-Fi router through <code>wlan0</code>, to answer to neighbour solicitation requests for all addresses in <code>2001:db8:abc:123:40::/76</code> subnet:</p>
-<pre><code>pi@pi-31: $ cat /etc/ndppd.conf
+<pre tabindex=0><code>pi@pi-31: $ cat /etc/ndppd.conf
 
 proxy wlan0 {
 	autowire yes
@@ -101,25 +101,25 @@ proxy wlan0 {
 	}
 }
 </code></pre><p>I also set a static route on <code>pi-31</code> so it routed all traffic to <code>2001:db8:abc:123:40::/76</code> through <code>eth0</code>, forwarding the traffic to the corresponding <code>pi-4x</code> hosts:</p>
-<pre><code>pi@pi-31:~ $ ip -6 route show
+<pre tabindex=0><code>pi@pi-31:~ $ ip -6 route show
 2001:db8:abc:123:40::/76 dev eth0 metric 100 pref medium
 2001:db8:abc:123::/64 dev wlan0 proto ra metric 303 mtu 1500 pref medium
 ···
 </code></pre><p>I&rsquo;ve put the route into <code>/etc/dhcpcd.exit-hook</code> on <code>pi-31</code> so the configuration persisted between the restarts.</p>
 <p>With NDP proxying and the route in place, <code>pi-4x</code> hosts can finally ping the IPv6 internet:</p>
-<pre><code>pi@pi-42: $ ping -6 ya.ru
+<pre tabindex=0><code>pi@pi-42: $ ping -6 ya.ru
 PING ya.ru(ya.ru (2a02:6b8::2:242)) 56 data bytes
 64 bytes from ya.ru (2a02:6b8::2:242): icmp_seq=1 ttl=52 time=54.1 ms
 64 bytes from ya.ru (2a02:6b8::2:242): icmp_seq=2 ttl=52 time=57.4 ms
 </code></pre><p>As an additional side effect, because the IPv6 traffic from the Wi-Fi router is properly routed to the homelab cluster, I no longer have to use jump host when SSH to a <code>pi-4x</code> host — I can use host&rsquo;s global IPv6 address instead:</p>
-<pre><code>$ ssh pi@2001:db8:abc:123:42::1
+<pre tabindex=0><code>$ ssh pi@2001:db8:abc:123:42::1
 
 Last login: Sun Apr 25 17:19:33 2021 from 2001:db8:abc:123:99b9:6677:751b:dc75
 pi@pi-42:~ $
 </code></pre><h2 id=fixing-mdns>Fixing mDNS</h2>
 <p><code>avahi-daemon</code> can reflect the incoming mDNS requests to all local network interfaces on the host out of the box. All I have to do was to specify <code>enable-reflector=yes</code> in <code>/etc/avahi/avahi-daemon.conf</code> on <code>pi-31</code> gateway. Refer to <code>man avahi-daemon.conf</code> for more details about the available knobs.</p>
 <p>Now I can access any <code>pi-4x</code> host from the main home network with mDNS, just as if we were on the same LAN:</p>
-<pre><code>$ ping6 pi-41.local
+<pre tabindex=0><code>$ ping6 pi-41.local
 PING6(56=40+8+8 bytes) 2001:db8:abc:123:99b9:6677:751b:dc75 --&gt; 2001:db8:abc:123:41::1
 16 bytes from 2001:db8:abc:123:41::1, icmp_seq=0 hlim=63 time=5.536 ms
 16 bytes from 2001:db8:abc:123:41::1, icmp_seq=1 hlim=63 time=4.003 ms
