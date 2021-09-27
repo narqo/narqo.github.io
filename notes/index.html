@@ -28,7 +28,7 @@
 <header class=main-head>
 <h1>Notes</h1>
 </header>
-<article class=article data-weight=0 data-word-count=700 data-reading-time=4>
+<article class=article data-weight=0 data-word-count=800 data-reading-time=4>
 <header class=section-head>
 <h2><a href=/notes/2021/09/making-sense-of-requests-for-cpu-resources-in-kubernetes/>Making sense of requests for CPU resources in Kubernetes</a></h2>
 </header>
@@ -68,6 +68,7 @@ On a multi-core system, the shares of CPU time are distributed over all CPU core
 </blockquote>
 <p>The important difference between the ideas of a &ldquo;box&rdquo; and a &ldquo;hint&rdquo; is that the &ldquo;hint&rdquo; doesn&rsquo;t prevent the application from consuming the whole node&rsquo;s CPU resources, when it requested only half of it — containers are not the VMs, afterall. Using the same example of a cluster&rsquo;s node with 2 vCPU, a multi-threaded application inside a container still sees two CPU cores. If there are no other tenants on the node, there is no one who the application has to compete for its share of CPU resources.</p>
 <p>As mentioned earlier, this applies to Docker container runtime. Don&rsquo;t forget to consult with the documentation provided by the particular Kubernetes distribution when you make the decisions, that includes the fine-tunning of cluster resources. Docker is still the runtime AWS EKS uses for <a href=https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html>Kubernetes up to version 1.21</a>. But things might work differently for your cluster as Kubernetes providers switch to alternative container runtimes.</p>
+<p><em>Let&rsquo;s discuss this note on <a href="https://news.ycombinator.com/item?id=28668859">Hacker News</a> and <a href=https://twitter.com/tvii/status/1442427866961088513>Twitter</a>.</em></p>
 <footer class=meta>
 <time datetime=2021-09-26T12:00:00Z>September 26, 2021</time><a class=tag href=/tags/kubernetes/>kubernetes</a><a class=tag href=/tags/docker/>docker</a>
 </footer>
