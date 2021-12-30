@@ -8,7 +8,7 @@
 <link rel=canonical href=https://vladimir.varank.in/notes/2021/12/error-messages-in-go/>
 <meta property="og:title" content="Error messages in Go">
 <meta property="og:description" content="When Go code propagates an error, the following pattern is very popular:
-fmt.Errorf(“failed to find a parking slot: %w, err) // Or fmt.Errorf(“could not call mom: %w, err) These &ldquo;could not&rdquo;, &ldquo;failed to&rdquo;, &ldquo;unable to&rdquo; make sense when my mind is in the local context of the function, method or package. But, in most of the cases I have to deal with, it makes the resulting log message overloaded with informational garbage:
+fmt.Errorf(&#34;failed to find a parking slot: %w&#34;, err) // Or fmt.Errorf(&#34;could not call mom: %w&#34;, err) These &ldquo;could not&rdquo;, &ldquo;failed to&rdquo;, &ldquo;unable to&rdquo; make sense when my mind is in the local context of the function, method or package. But, in most of the cases I have to deal with, it makes the resulting log message overloaded with informational garbage:
 unable to ask about the cat: failed to call mom: failed to do request: Get https://: context canceled While discussing this issue with a colleague, we came up with the following &ldquo;better&rdquo; strategy:
  only the logger should express its attitude to the facts, using words &ldquo;error&rdquo;, &ldquo;failed&rdquo;, etc the business code must operate with the facts only, i.e. call mom (tel %s): %w  error: ask about the cat: call mom (tel XXX): do request: Get https://···: context canceled For a long stack of errors, this makes the full error message more dense, showing more useful information per line.">
 <meta property="og:type" content="article">
@@ -33,9 +33,9 @@ unable to ask about the cat: failed to call mom: failed to do request: Get https
 <h1>Error messages in Go</h1>
 </header>
 <p>When Go code propagates an error, the following pattern is very popular:</p>
-<pre tabindex=0><code>fmt.Errorf(“failed to find a parking slot: %w, err)
+<pre tabindex=0><code>fmt.Errorf(&quot;failed to find a parking slot: %w&quot;, err)
 // Or
-fmt.Errorf(“could not call mom: %w, err)
+fmt.Errorf(&quot;could not call mom: %w&quot;, err)
 </code></pre><p>These &ldquo;could not&rdquo;, &ldquo;failed to&rdquo;, &ldquo;unable to&rdquo; make sense when my mind is in the local context of the function, method or package. But, in most of the cases I have to deal with, it makes the resulting log message overloaded with informational garbage:</p>
 <pre tabindex=0><code>unable to ask about the cat: failed to call mom: failed to do request: Get https://: context canceled
 </code></pre><p>While discussing this issue with a colleague, we came up with the following &ldquo;better&rdquo; strategy:</p>

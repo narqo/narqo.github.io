@@ -33,9 +33,9 @@
 <h2><a href=/notes/2021/12/error-messages-in-go/>Error messages in Go</a></h2>
 </header>
 <p>When Go code propagates an error, the following pattern is very popular:</p>
-<pre tabindex=0><code>fmt.Errorf(“failed to find a parking slot: %w, err)
+<pre tabindex=0><code>fmt.Errorf(&quot;failed to find a parking slot: %w&quot;, err)
 // Or
-fmt.Errorf(“could not call mom: %w, err)
+fmt.Errorf(&quot;could not call mom: %w&quot;, err)
 </code></pre><p>These &ldquo;could not&rdquo;, &ldquo;failed to&rdquo;, &ldquo;unable to&rdquo; make sense when my mind is in the local context of the function, method or package. But, in most of the cases I have to deal with, it makes the resulting log message overloaded with informational garbage:</p>
 <pre tabindex=0><code>unable to ask about the cat: failed to call mom: failed to do request: Get https://: context canceled
 </code></pre><p>While discussing this issue with a colleague, we came up with the following &ldquo;better&rdquo; strategy:</p>
