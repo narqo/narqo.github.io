@@ -28,6 +28,27 @@
 <header class=main-head>
 <h1>Notes</h1>
 </header>
+<article class=article data-weight=0 data-word-count=200 data-reading-time=1>
+<header class=section-head>
+<h2><a href=/notes/2021/12/error-messages-in-go/>Error messages in Go</a></h2>
+</header>
+<p>When Go code propagates an error, the following pattern is very popular:</p>
+<pre tabindex=0><code>fmt.Errorf(“failed to find a parking slot: %w, err)
+// Or
+fmt.Errorf(“could not call mom: %w, err)
+</code></pre><p>These &ldquo;could not&rdquo;, &ldquo;failed to&rdquo;, &ldquo;unable to&rdquo; make sense when my mind is in the local context of the function, method or package. But, in most of the cases I have to deal with, it makes the resulting log message overloaded with informational garbage:</p>
+<pre tabindex=0><code>unable to ask about the cat: failed to call mom: failed to do request: Get https://: context canceled
+</code></pre><p>While discussing this issue with a colleague, we came up with the following &ldquo;better&rdquo; strategy:</p>
+<ol>
+<li>only the logger should express its attitude to the facts, using words &ldquo;error&rdquo;, &ldquo;failed&rdquo;, etc</li>
+<li>the business code must operate with the facts only, i.e. <code>call mom (tel %s): %w</code></li>
+</ol>
+<pre tabindex=0><code>error: ask about the cat: call mom (tel XXX): do request: Get https://···: context canceled
+</code></pre><p>For a long stack of errors, this makes the full error message more dense, showing more useful information per line.</p>
+<footer class=meta>
+<time datetime=2021-12-30T12:00:00Z>December 30, 2021</time><a class=tag href=/tags/go/>go</a>
+</footer>
+</article>
 <article class=article data-weight=0 data-word-count=300 data-reading-time=2>
 <header class=section-head>
 <h2><a href=/notes/2021/10/good-coffee-places-in-berlin/>Good coffee places in Berlin</a></h2>
