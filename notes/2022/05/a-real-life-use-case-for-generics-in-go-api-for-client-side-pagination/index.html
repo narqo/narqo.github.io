@@ -43,7 +43,7 @@ type PageInfo struct {
 
 // PageInfo returns a metadata about the current page.
 func (p *Pager[T]) PageInfo() PageInfo { ··· }
-</code></pre><p>In order to traverse through the collection of the resources, the users of our <code>LedgerAPIClient</code> call the <code>List*</code> method of the relevant API resource, and iterate through the returned pager, until the latter is exhausted, or the user is satisfied with the results at hands:</p><pre tabindex=0><code>c := api.NewLedgerAPIClient()
+</code></pre><p>Under the hood, the <code>Pager[T]</code> type implements an iterator, that keeps the state with the current page, and calls the API endpoints, via a backref to its API client, to retrieve the list for the next or previous pages. The actual implementation may look as an example in this <a href=https://gist.github.com/narqo/48a4e6d492912195b3340dbecc65c2b0>gist</a>.</p><p>In order to traverse through the collection of the resources, the users of our <code>LedgerAPIClient</code> call the <code>List*</code> method of the relevant API resource, and iterate through the returned pager, until the latter is exhausted, or the user is satisfied with the results at hands:</p><pre tabindex=0><code>c := api.NewLedgerAPIClient()
 
 pager := c.ListAccounts(ctx, input)
 for {
