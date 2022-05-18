@@ -43,7 +43,7 @@ type PageInfo struct {
 
 // PageInfo returns a metadata about the current page.
 func (p *Pager[T]) PageInfo() PageInfo { ··· }
-</code></pre><p>Under the hood, the <code>Pager[T]</code> type implements an iterator, that keeps the state with the current page, and calls the API endpoints, via a backref to its API client, to retrieve the list with the next or previous page. The actual implementation may look as this <a href=https://gist.github.com/narqo/48a4e6d492912195b3340dbecc65c2b0>example gist</a>.</p><p>In order to traverse through the collection of the resources, the users of our <code>LedgerAPIClient</code> call the <code>List*</code> method of the relevant API resource, and iterate through the returned pager, until the latter is exhausted, or the user is satisfied with the results at hands:</p><pre tabindex=0><code>c := api.NewLedgerAPIClient()
+</code></pre><p>Under the hood, the <code>Pager[T]</code> type implements an iterator, that keeps the state with the current page, and calls the API endpoints, via a backref to its API client, to retrieve the list with the next or previous page. The actual implementation may look as shown in <a href=https://gist.github.com/narqo/48a4e6d492912195b3340dbecc65c2b0>this example gist</a>.</p><p>In order to traverse through the collection of the resources, the users of our <code>LedgerAPIClient</code> call the <code>List*</code> method of the relevant API resource, and iterate through the returned pager, until the latter is exhausted, or the user is satisfied with the results at hands:</p><pre tabindex=0><code>c := api.NewLedgerAPIClient()
 
 pager := c.ListAccounts(ctx, input)
 for {
@@ -57,16 +57,17 @@ for {
         // do something with this page&#39;s list of accounts
     }
 }
-</code></pre><p>Let&rsquo;s say, for a certain use-case it&rsquo;s more convenient to work with the collection as if it wasn&rsquo;t a paginated list of resources, but as if it was a continuous stream of individual recourses.</p><p>What is nice about this implementation is that a generic type <code>Pager[T]</code> implements a generic interface:</p><pre tabindex=0><code>type pageIterator[T any] interface {
+</code></pre><p>Let&rsquo;s say, for a certain use-case it&rsquo;s more convenient to work with the collection as if it wasn&rsquo;t a paginated list of resources, but as if it was a continuous stream of individual recourses.</p><p>What is nice about this implementation is that the generic type <code>Pager[T]</code> implements a generic interface:</p><pre tabindex=0><code>type pageIterator[T any] interface {
     NextPage() ([]T, error)
 }
-</code></pre><p>We can implement <em>another</em> generic helper, that accepts a <code>pageIterator[T any]</code> interface, and uses it to scan through the whole collection, returning the items one after another. Thanks to generics, we can implement that once, and it will work with any type of resource in our API client, while providing a user a strongly typed API to work with:</p><pre tabindex=0><code>type PageScanner[T any] struct {
+</code></pre><p>We can implement a helper, that accepts a <code>pageIterator[T any]</code> interface, and using its <code>NextPage()</code> method, the helper scans through the whole collection, returning its items one by one. Generics allow implementing this helper once, and it will work with any type of resource in our API client, and provide a strongly typed API to a user to work with:</p><pre tabindex=0><code>type PageScanner[T any] struct {
     Pager pageIterator[T]
     // a buffer of items yet to be conumed by the user
     list [T]
 }
 
 // Next returns next item from the underlying pager.
+// After all items of the current page are consumed, PageScanner moves to the next page.
 func (s *PageScanner[T any]) Next() (item T, err error) {
     for len(s.list) == 0 {
         s.list, err = s.Pager.NextPage()
