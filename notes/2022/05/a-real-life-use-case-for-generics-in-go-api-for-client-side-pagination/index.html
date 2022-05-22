@@ -63,7 +63,7 @@ for {
 </code></pre><p>We can implement a helper, that accepts a <code>pageIterator[T any]</code> interface, and using its <code>NextPage()</code> method, the helper scans through the whole collection, returning its items one by one. Generics allow implementing this helper once, and it will work with any type of resource in our API client, and provide a strongly typed API to a user to work with:</p><pre tabindex=0><code>type PageScanner[T any] struct {
     Pager pageIterator[T]
     // a buffer of items yet to be conumed by the user
-    list [T]
+    list []T
 }
 
 // Next returns next item from the underlying pager.
