@@ -9,7 +9,7 @@
 <a href=/notes/go/>Go</a>
 <a href=/notes/homelab/>Homelab</a>
 <a href=/notes/kubernetes/>Kubernetes</a>
-<a href=/notes/all/>Everything</a></menu></header><article class=article data-weight=0 data-word-count=400 data-reading-time=2><header class=section-head><h2><a href=/notes/2023/09/compile-time-safety-for-enumerations-in-go/>Compile-time safety for enumerations in Go</a></h2></header><p>Last month, a colleague of mine asked how to reason about enumerated values (&ldquo;enums&rdquo;) in Go. They wanted to benefit from Go&rsquo;s type-safety and to prevent users from misusing the package.</p><p>For an imaginary example, that enumerates possible colours, the snippet below shows how we typically implement this:</p><pre tabindex=0><code>type Color string
+<a href=/notes/all/>Everything</a></menu></header><article class=article data-weight=0 data-word-count=500 data-reading-time=3><header class=section-head><h2><a href=/notes/2023/09/compile-time-safety-for-enumerations-in-go/>Compile-time safety for enumerations in Go</a></h2></header><p>Last month, a colleague of mine asked how to reason about enumerated values (&ldquo;enums&rdquo;) in Go. They wanted to benefit from Go&rsquo;s type-safety and to prevent users from misusing the package.</p><p>For an imaginary example, that enumerates possible colours, the snippet below shows how we typically implement this:</p><pre tabindex=0><code>type Color string
 
 const (
     Red   Color = &#34;red&#34;
@@ -24,7 +24,7 @@ func main() {
     PrintColor(&#34;RAINBOW&#34;)
 
     var rainbow color.Color = &#34;🌈&#34;
-	PrintColor(rainbow)
+    PrintColor(rainbow)
 }
 
 func PrintColor(c color.Color) {
@@ -35,7 +35,7 @@ func PrintColor(c color.Color) {
 red
 RAINBOW
 🌈
-</code></pre><p>Note how in the snippet above, the user both called <code>PrintColor(“RAINBOW”)</code> and defined their own variable of type <code>color.Color</code>, which holds a random string.</p><p>Go&rsquo;s type system allows preventing both issues in a rather elegant way. Let&rsquo;s declare the <code>Color</code> as an interfaces with an <em>unexported</em> method, and implement the interface in by an unexported type <code>color</code>:</p><pre tabindex=0><code>package color
+</code></pre><p>Note how in the snippet above, the user both called <code>PrintColor(“RAINBOW”)</code> and defined their own variable of type <code>color.Color</code>, which holds a random string.</p><p><em>Update: a number of people pointed at my choice of words in the paragraph below, where I introduce a way to solve the problems. Indeed, &ldquo;elegant&rdquo; isn&rsquo;t the most accurate one to describe this solution :) Also, refer to <a href=https://go.dev/issues/19412>#19412</a> for the discussion about adding sum types to Go.</em></p><hr><p>Go&rsquo;s type system allows preventing both issues <del>in a rather elegant way</del>. Let&rsquo;s declare the <code>Color</code> interface, with an <em>unexported method</em>, while implementing this interface in an unexported type <code>color</code>:</p><pre tabindex=0><code>package color
 
 type Color interface {
     xxxProtected()
@@ -50,7 +50,7 @@ const (
 	Green color = &#34;green&#34;
 	Blue  color = &#34;blue&#34;
 )
-</code></pre><p>Because no type outside of our package <code>color</code> can implement the unexported method <code>color.Color.xxxProtected()</code>, we limit the possible implementations of <code>Color</code> interface to only values, defined in the <code>color</code> package.</p><pre tabindex=0><code>package main
+</code></pre><p>Because no types outside of our package <code>color</code> can implement the unexported method <code>color.Color.xxxProtected()</code>, we limit the possible implementations of the <code>Color</code> interface to only values, defined in the package <code>color</code>.</p><pre tabindex=0><code>package main
 
 func main() {
     PrintColor(color.Red)
@@ -61,7 +61,7 @@ func main() {
 func PrintColor(c color.Color) {
     fmt.Printf(&#34;%v\n&#34;, c)
 }
-</code></pre><p>If a user tries to pass an untyped constant string or declare their own variant of colour, the code won&rsquo;t compile, resulting with an error:</p><pre tabindex=0><code>package main
+</code></pre><p>If a user tries to pass an untyped constant string or declare their own variant of the colour, the code won&rsquo;t compile, resulting with an error:</p><pre tabindex=0><code>package main
 
 type mycolor string
 
