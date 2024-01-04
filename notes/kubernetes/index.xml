@@ -16,18 +16,18 @@ no additional space needed for dead tuples less autovacuum required transaction 
 &lt;pre tabindex="0">&lt;code>apiVersion: v1
 kind: Pod
 metadata:
-name: my-app
+ name: my-app
 spec:
-containers:
-- name: my-app
-image: images.example/my-app
-resources:
-requests:
-cpu: &amp;#34;100m&amp;#34;
-memory: &amp;#34;64Mi&amp;#34;
-limits:
-cpu: &amp;#34;500m&amp;#34;
-memory: &amp;#34;128Mi&amp;#34;
+ containers:
+ - name: my-app
+ image: images.example/my-app
+ resources:
+ requests:
+ cpu: &amp;#34;100m&amp;#34;
+ memory: &amp;#34;64Mi&amp;#34;
+ limits:
+ cpu: &amp;#34;500m&amp;#34;
+ memory: &amp;#34;128Mi&amp;#34;
 &lt;/code>&lt;/pre>&lt;p>One particularly confusing type of the resource for me was &lt;code>cpu&lt;/code>. For example, in the manifest above, the &lt;code>my-app&lt;/code> container declares a request for &amp;ldquo;100m&amp;rdquo; of the CPU. What does that mean?&lt;/p></description></item><item><title>k3s with Ubuntu Server (arm64) on Raspberry Pi 4</title><link>https://vladimir.varank.in/notes/2020/01/raspi-ubuntu-arm64-k3s/</link><pubDate>Sat, 11 Jan 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/01/raspi-ubuntu-arm64-k3s/</guid><description>&lt;p>As I&amp;rsquo;ve &lt;a href="https://twitter.com/tvii/status/1215927299557797893?s=20">twitted&lt;/a> recently, I&amp;rsquo;m updating one of my Raspberry Pis to &lt;a href="https://ubuntu.com/download/raspberry-pi">Ubuntu Server 19.10 (arm64)&lt;/a>.&lt;/p>
 &lt;h2 id="one-of-raspberry-pis">&amp;ldquo;One of Raspberry Pis&amp;rdquo;?&lt;/h2>
 &lt;p>My home cluster is four &lt;a href="https://www.raspberrypi.org/products/raspberry-pi-4-model-b/?variant=raspberry-pi-4-model-b-2gb">Raspberry Pis 4 (2GB)&lt;/a>; all connected to my internet router through ethernet and

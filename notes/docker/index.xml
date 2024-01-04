@@ -2,18 +2,18 @@
 &lt;pre tabindex="0">&lt;code>apiVersion: v1
 kind: Pod
 metadata:
-name: my-app
+ name: my-app
 spec:
-containers:
-- name: my-app
-image: images.example/my-app
-resources:
-requests:
-cpu: &amp;#34;100m&amp;#34;
-memory: &amp;#34;64Mi&amp;#34;
-limits:
-cpu: &amp;#34;500m&amp;#34;
-memory: &amp;#34;128Mi&amp;#34;
+ containers:
+ - name: my-app
+ image: images.example/my-app
+ resources:
+ requests:
+ cpu: &amp;#34;100m&amp;#34;
+ memory: &amp;#34;64Mi&amp;#34;
+ limits:
+ cpu: &amp;#34;500m&amp;#34;
+ memory: &amp;#34;128Mi&amp;#34;
 &lt;/code>&lt;/pre>&lt;p>One particularly confusing type of the resource for me was &lt;code>cpu&lt;/code>. For example, in the manifest above, the &lt;code>my-app&lt;/code> container declares a request for &amp;ldquo;100m&amp;rdquo; of the CPU. What does that mean?&lt;/p></description></item><item><title>Building Multi-Platform Docker Images with Travis CI and BuildKit</title><link>https://vladimir.varank.in/notes/2020/01/buildkit-multi-platform-travis-ci/</link><pubDate>Mon, 27 Jan 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/01/buildkit-multi-platform-travis-ci/</guid><description>This is a lengthy note. If you don&amp;rsquo;t quite feel reading and only need the working example, go directly to the Travis CI build file.
 The more I delve into the world of Raspberry Pi, the more I notice that &amp;ldquo;regular and boring&amp;rdquo; things on ARM are harder than I expected.
 People build and distribute software exclusively for amd64. You read another &amp;ldquo;Kubernetes something&amp;rdquo; tutorial, that went viral on Twitter, and is fancy to try it out. Still, all helm charts, or whatever the author prefered, use Docker images built exclusively for amd64.
