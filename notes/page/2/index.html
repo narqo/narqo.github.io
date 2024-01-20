@@ -10,7 +10,7 @@ Vladimir Varankin
 <a href=/notes/go/>Go</a>
 <a href=/notes/homelab/>Homelab</a>
 <a href=/notes/kubernetes/>Kubernetes</a>
-<a href=/notes/all/>Everything</a></menu></header><article class=article data-weight=0 data-word-count=200 data-reading-time=1><header class=section-head><h2><a href=/notes/2021/12/error-messages-in-go/>Error messages in Go</a></h2></header><p>When Go code propagates an error, the following pattern is very popular:</p><pre tabindex=0><code>fmt.Errorf(&#34;failed to find a parking slot: %w&#34;, err)
+<a href=/notes/all/>Everything</a></menu></header><article class=article data-weight=0 data-word-count=1500 data-reading-time=7><header class=section-head><h2><a href=/notes/2022/01/i-got-covid/>I've got COVID. What do I do next?</a></h2></header><p>Go to <a href=https://www.berlin.de/corona/massnahmen/abstands-und-hygieneregeln/>https://www.berlin.de/corona/massnahmen/abstands-und-hygieneregeln/</a> for the information (in German) about the latest regulations in Berlin. For the up-to-date information in your region, consult with your local authorities.</p><p><em>Everything I list below are the steps I found relevant, after I&rsquo;ve self-tested positive for COVID in Berlin, in the end of January 2022</em>.</p><h3 id=friday-28th-january-2022>Friday, 28th January 2022</h3><p>I woke up with some <em>mild</em> symptoms of cold. On the day before I worked from home, and only had a usual an hour-long walk around Prenzlauer Berg — Mitte after the workday. The rapid antigen test (<em>Schnelltest</em>) was negative.</p><p>While still working from home, I took a &ldquo;quiet Friday&rdquo; at work, to simply focused on some mundane routines.</p><p>I went for a short walk in the afternoon, bought some grocery, and headed home.</p><h3 id=saturday-29th-january>Saturday, 29th January</h3><p>Didn&rsquo;t feel anywhere better or worse: mostly had a runny nose and a dry throat. I didn&rsquo;t want to wait in the line for a quick-test, so I&rsquo;ve just walked around the city for an hour and went home.</p><h3 id=sunday-30th-january>Sunday, 30th January</h3><p>It felt the same as it&rsquo;d been the day before, although the dry throat started to feel a bit more intense. Walked around for an hour, came home, made some coffee ;)</p><p>A couple hours later I started to cough. I made a self-test — we still had some at home — and,</p><blockquote><p><em>Here we are! Welcome to the &ldquo;two-stripes&rdquo; club</em>.</p></blockquote><p><a href=/notes/2022/01/i-got-covid/>Keep reading…</a></p><footer class=meta><time datetime=2022-01-31T12:00:00Z>January 31, 2022</time><a class=tag href=/notes/berlin/>berlin</a><a class=tag href=/notes/covid-19/>COVID-19</a></footer></article><article class=article data-weight=0 data-word-count=200 data-reading-time=1><header class=section-head><h2><a href=/notes/2021/12/error-messages-in-go/>Error messages in Go</a></h2></header><p>When Go code propagates an error, the following pattern is very popular:</p><pre tabindex=0><code>fmt.Errorf(&#34;failed to find a parking slot: %w&#34;, err)
 // Or
 fmt.Errorf(&#34;could not call mom: %w&#34;, err)
 </code></pre><p>These &ldquo;could not&rdquo;, &ldquo;failed to&rdquo;, &ldquo;unable to&rdquo; make sense when my mind is in the local context of the function, method or package. But, in most of the cases I have to deal with, it makes the resulting log message overloaded with informational garbage:</p><pre tabindex=0><code>unable to ask about the cat: failed to call mom: failed to do request: Get https://: context canceled
@@ -363,50 +363,6 @@ CS → GPIO15</p><p>That&rsquo;s how the initialisation of the main <code>GxEPD2
 
 // mapping of Waveshare e-Paper ESP8266 Driver Board
 GxEPD2_BW&lt;GxEPD2_270, GxEPD2_270::HEIGHT&gt; display(GxEPD2_270(/*CS=15*/ SS, /*DC=4*/ 4, /*RST=2*/ 2, /*BUSY=5*/ 5));
-</code></pre><footer class=meta><time datetime=2020-07-14T12:00:00Z>July 14, 2020</time><a class=tag href=/notes/homelab/>homelab</a><a class=tag href=/notes/waveshare/>waveshare</a><a class=tag href=/notes/esp8266/>esp8266</a><a class=tag href=/notes/e-paper/>e-paper</a><a class=tag href=/notes/arduino/>arduino</a></footer></article><article class=article data-weight=0 data-word-count=300 data-reading-time=2><header class=section-head><h2><a href=/notes/2020/06/sticky-headers/>Sticky headers? Please don't</a></h2></header><p>Sticky (or &ldquo;<em>fixed</em>&rdquo;) headers are everywhere. It feels that, nowadays, every web designer’s first attempt to site&rsquo;s navigation starts with a sticky header. I hate this.</p><p><a href=/notes/2020/06/sticky-headers/>Keep reading, the note has images…</a></p><footer class=meta><time datetime=2020-06-17T12:00:00Z>June 17, 2020</time><a class=tag href=/notes/design/>design</a><a class=tag href=/notes/random/>random</a></footer></article><article class=article data-weight=0 data-word-count=300 data-reading-time=2><header class=section-head><h2><a href=/notes/2020/04/owner-of-logging-context/>Owner of Logging Context</a></h2></header><p>There’s the late-night dilemma&mldr;</p><p><strong>Who should be in charge of logging context: a component&rsquo;s owner or the component itself?</strong></p><pre tabindex=0><code>type Logger interface {
-	With(...kvpairs) Logger
-}
-
-type Storage struct {
-	logger Logger
-}
-
-// OPTION 1: component&#39;s owner defines the context of component&#39;s logger
-func main() {
-	_ = NewStorage(logger.With(&#34;component&#34;, &#34;storage&#34;))
-}
-
-// OPTION 2: component itself is in charge of its logging context
-func NewStorage(logger Logger) (st *Storage) {
-	return &amp;Storage{
-		logger: logger.With(&#34;component&#34;, &#34;storage&#34;),
-	}
-}
-</code></pre><p>Fun fact: a couple months back, we ruined the team&rsquo;s Friday, by debating about a similar topic in the context of (Graphite) metrics namespaces. It has become even more intricate since then :/</p><p><strong>Update (2020-04-15)</strong></p><p>Many people <a href=https://twitter.com/tvii/status/1250166077235048449>on Twitter</a> suggest that <em>Option 1</em> is an obvious choice because only application knows how to name the components. I totally agree with that.</p><p>As I <a href=https://twitter.com/tvii/status/1250298527814529026>wrote later</a>, the <em>real</em> dilemma is not about &ldquo;application and component&rdquo; but about &ldquo;owner of the component&rdquo;. Function <code>main</code>, in the example above, was a silly example, that tried (and failed) to illustrate the question in a code.</p><p>Let&rsquo;s try another (<em>silly</em>) example:</p><pre tabindex=0><code>// there are buch of different handlers (maybe ten) in this application
-type Handler1 struct { logger Logger }
-
-func (h *Handler1) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// OPTION 1
-	req := NewRequst(h.logger.With(&#34;component&#34;, &#34;request&#34;), r)
-}
-
-type Handler2 struct { logger Logger }
-
-func (h *Handler2) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// OPTION 1, still
-	req := NewRequst(h.logger.With(&#34;component&#34;, &#34;request&#34;), r)
-}
-
-type Request struct {
-	logger Logger
-}
-
-// OPTION 2
-func NewRequst(logger Logger, *r http.Request) *Request {
-	return &amp;Request{
-		logger: logger.With(&#34;component&#34;, &#34;request&#34;),
-	}
-}
-</code></pre><p>We want to have a consistent nomenclature across the application&rsquo;s logs.</p><p>Is the choice still obvious? ;)</p><p><em>Do you have an opinion? Share it with me <a href=https://twitter.com/tvii/status/1250166077235048449>on Twitter</a></em>.</p><footer class=meta><time datetime=2020-04-14T12:00:00Z>April 14, 2020</time></footer></article><nav class=pagination><a class=page-item href=/notes/ aria-label="Page 1">1</a>
+</code></pre><footer class=meta><time datetime=2020-07-14T12:00:00Z>July 14, 2020</time><a class=tag href=/notes/homelab/>homelab</a><a class=tag href=/notes/waveshare/>waveshare</a><a class=tag href=/notes/esp8266/>esp8266</a><a class=tag href=/notes/e-paper/>e-paper</a><a class=tag href=/notes/arduino/>arduino</a></footer></article><article class=article data-weight=0 data-word-count=300 data-reading-time=2><header class=section-head><h2><a href=/notes/2020/06/sticky-headers/>Sticky headers? Please don't</a></h2></header><p>Sticky (or &ldquo;<em>fixed</em>&rdquo;) headers are everywhere. It feels that, nowadays, every web designer’s first attempt to site&rsquo;s navigation starts with a sticky header. I hate this.</p><p><a href=/notes/2020/06/sticky-headers/>Keep reading, the note has images…</a></p><footer class=meta><time datetime=2020-06-17T12:00:00Z>June 17, 2020</time><a class=tag href=/notes/design/>design</a><a class=tag href=/notes/random/>random</a></footer></article><nav class=pagination><a class=page-item href=/notes/ aria-label="Page 1">1</a>
 <span class="page-item page-item-active" aria-current=page aria-label="Page 2">2</span>
 <a class=page-item href=/notes/page/3/ aria-label="Page 3">3</a></nav></main><footer class=site-footer>#НетВойне<br><a href=mailto:vladimir@varank.in>vladimir@varank.in</a></footer><img src=https://c.varank.in/hello/*https://vladimir.varank.in/notes/ style=position:absolute;left:-9999px decoding=async alt></body></html>
