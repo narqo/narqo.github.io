@@ -10,7 +10,7 @@ Vladimir Varankin
 <a href=/notes/go/>Go</a>
 <a href=/notes/homelab/>Homelab</a>
 <a href=/notes/kubernetes/>Kubernetes</a>
-<a href=/notes/all/>Everything</a></menu></header><article class=article data-weight=0 data-word-count=300 data-reading-time=2><header class=section-head><h2><a href=/notes/2020/04/owner-of-logging-context/>Owner of Logging Context</a></h2></header><p>There’s the late-night dilemma&mldr;</p><p><strong>Who should be in charge of logging context: a component&rsquo;s owner or the component itself?</strong></p><pre tabindex=0><code>type Logger interface {
+<a href=/notes/all/>Everything</a></menu></header><article class=article data-weight=0 data-word-count=300 data-reading-time=2><header class=section-head><h2><a href=/notes/2020/06/sticky-headers/>Sticky headers? Please don't</a></h2></header><p>Sticky (or &ldquo;<em>fixed</em>&rdquo;) headers are everywhere. It feels that, nowadays, every web designer’s first attempt to site&rsquo;s navigation starts with a sticky header. I hate this.</p><p><a href=/notes/2020/06/sticky-headers/>Keep reading, the note has images…</a></p><footer class=meta><time datetime=2020-06-17T12:00:00Z>June 17, 2020</time><a class=tag href=/notes/design/>design</a><a class=tag href=/notes/random/>random</a></footer></article><article class=article data-weight=0 data-word-count=300 data-reading-time=2><header class=section-head><h2><a href=/notes/2020/04/owner-of-logging-context/>Owner of Logging Context</a></h2></header><p>There’s the late-night dilemma&mldr;</p><p><strong>Who should be in charge of logging context: a component&rsquo;s owner or the component itself?</strong></p><pre tabindex=0><code>type Logger interface {
 	With(...kvpairs) Logger
 }
 
