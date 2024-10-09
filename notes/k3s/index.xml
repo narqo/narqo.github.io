@@ -1,10 +1,89 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>k3s on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/k3s/</link><description>Recent content in k3s on Vladimir Varankin</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 10 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/k3s/index.xml" rel="self" type="application/rss+xml"/><item><title>Self-signed certificates with k3s and cert-manager</title><link>https://vladimir.varank.in/notes/2021/07/self-signed-certificates-with-k3s-and-cert-manager/</link><pubDate>Sat, 10 Jul 2021 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2021/07/self-signed-certificates-with-k3s-and-cert-manager/</guid><description>At least for now, my homelab cluster (4x Raspberry Pi, k3s, etc) is available only for the devices on my local network, inside a custom DNS zone k8s.pi.home. I don&amp;rsquo;t think there are practical reasons to run anything with HTTPS in that setup, but there are cases, like browser extensions, where it&amp;rsquo;s required.
-Turned out, in 2021, it&amp;rsquo;s fairly straight forward to set up a Certificate Authority (CA), that will issue TLS certificates to &amp;ldquo;secure&amp;rdquo; the ingress resources. At least, it&amp;rsquo;s way simpler comparing to how I remember it was back in the days. All thanks to cert-manager and some YAML.
-First thing is to install cert-manager to the cluster. k3s comes with helm-controller, that gives us a way to manage helm charts with Custom Resource Definitions (CRD). The following manifest defines a new namespace, and a resource of a kind HelmChart, to install cert-manager inside this namespace:
-apiVersion: v1 kind: Namespace metadata: name: cert-manager --- apiVersion: helm.cattle.io/v1 kind: HelmChart metadata: name: cert-manager namespace: kube-system spec: chart: cert-manager repo: https://charts.jetstack.io targetNamespace: cert-manager valuesContent: |- installCRDs: true prometheus: enabled: true servicemonitor: enabled: true After applying the manifest above — kubectl apply -f cert-manager.yml — define a self-signed certificate, which is used to bootstrap a CA:
-apiVersion: cert-manager.io/v1 kind: ClusterIssuer metadata: name: selfsigned-cluster-issuer spec: selfSigned: {} --- apiVersion: cert-manager.io/v1 kind: Certificate metadata: name: selfsigned-ca spec: isCA: true commonName: selfsigned-ca secretName: selfsigned-ca-root-secret privateKey: algorithm: ECDSA size: 256 issuerRef: name: selfsigned-cluster-issuer kind: ClusterIssuer group: cert-manager.io --- apiVersion: cert-manager.io/v1 kind: Issuer metadata: name: selfsigned-issuer spec: ca: secretName: selfsigned-ca-root-secret And now, I can use selfsigned-issuer to issue TLS certificates for the ingress resources (Traefik ingress in the k3s&amp;rsquo;s case). E.g. to play around, I run an open-source version of LanguageTool server. The ingress manifests for the server looks like as following:
-apiVersion: networking.k8s.io/v1 kind: Ingress metadata: name: languagetool-server annotations: kubernetes.io/ingress.class: traefik cert-manager.io/issuer: selfsigned-issuer spec: rules: - host: languagetool.k8s.pi.home http: paths: - path: / pathType: ImplementationSpecific backend: service: name: languagetool-server port: number: 8010 tls: - hosts: [languagetool.k8s.pi.home] secretName: languagetool-server-cert Of course, any certificate signed by my CA won&amp;rsquo;t be automatically trusted by anyone, including my own system. If I try to access https://languagetool.k8s.pi.home, any HTTP client will raise a &amp;ldquo;failed to verify the legitimacy of the server&amp;rdquo; issue. I don&amp;rsquo;t know if there is a better way to solve that, but I can hack that around by installing the cluster&amp;rsquo;s root CA certificate into the system&amp;rsquo;s keychain, and telling the system, that it should &amp;ldquo;trust&amp;rdquo; the certificate:
-$ kubectl get secret/selfsigned-ca-root-secret -o json \ | jq -r &amp;#39;.data[&amp;#34;ca.crt&amp;#34;]&amp;#39; \ | base64 -D &amp;gt; ~/tmp/selfsigned-root-ca.crt $ open ~/tmp/selfsigned-root-ca.crt Choose &amp;ldquo;Always trust&amp;rdquo; the certificate in the keychain&amp;rsquo;s certificate settings. The server looks legitimate now!</description></item><item><title>k3s with Ubuntu Server (arm64) on Raspberry Pi 4</title><link>https://vladimir.varank.in/notes/2020/01/raspi-ubuntu-arm64-k3s/</link><pubDate>Sat, 11 Jan 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/01/raspi-ubuntu-arm64-k3s/</guid><description>&lt;p>As I&amp;rsquo;ve &lt;a href="https://twitter.com/tvii/status/1215927299557797893?s=20">twitted&lt;/a> recently, I&amp;rsquo;m updating one of my Raspberry Pis to &lt;a href="https://ubuntu.com/download/raspberry-pi">Ubuntu Server 19.10 (arm64)&lt;/a>.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>K3s on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/k3s/</link><description>Recent content in K3s on Vladimir Varankin</description><generator>Hugo</generator><language>en</language><lastBuildDate>Sat, 10 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/k3s/index.xml" rel="self" type="application/rss+xml"/><item><title>Self-signed certificates with k3s and cert-manager</title><link>https://vladimir.varank.in/notes/2021/07/self-signed-certificates-with-k3s-and-cert-manager/</link><pubDate>Sat, 10 Jul 2021 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2021/07/self-signed-certificates-with-k3s-and-cert-manager/</guid><description>&lt;p>At least for now, my homelab cluster (&lt;a href="https://vladimir.varank.in/notes/2020/01/raspi-ubuntu-arm64-k3s/">4x Raspberry Pi, k3s, etc&lt;/a>) is available only for the devices &lt;a href="https://vladimir.varank.in/notes/2021/04/wireless-to-ethernet-island-for-homelab-cluster-ipv6-ndp-proxy-and-mdns-reflector/">on my local network&lt;/a>, inside a custom DNS zone &lt;code>k8s.pi.home&lt;/code>. I don&amp;rsquo;t think there are practical reasons to run anything with HTTPS in that setup, but there are cases, like browser extensions, where it&amp;rsquo;s required.&lt;/p>
+&lt;p>Turned out, in 2021, it&amp;rsquo;s fairly straight forward to set up a Certificate Authority (CA), that will issue TLS certificates to &amp;ldquo;secure&amp;rdquo; the ingress resources. At least, it&amp;rsquo;s way simpler comparing to how I remember it was back in the days. All thanks to &lt;a href="https://cert-manager.io">cert-manager&lt;/a> and some YAML.&lt;/p>
+&lt;p>First thing is to install cert-manager to the cluster. &lt;a href="https://rancher.com/docs/k3s/latest/en/helm/">k3s comes with helm-controller&lt;/a>, that gives us a way to manage helm charts with Custom Resource Definitions (CRD). The following manifest defines a new namespace, and a resource of a kind &lt;code>HelmChart&lt;/code>, to install cert-manager inside this namespace:&lt;/p>
+&lt;pre tabindex="0">&lt;code>apiVersion: v1
+kind: Namespace
+metadata:
+ name: cert-manager
+
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+ name: cert-manager
+ namespace: kube-system
+spec:
+ chart: cert-manager
+ repo: https://charts.jetstack.io
+ targetNamespace: cert-manager
+ valuesContent: |-
+ installCRDs: true
+ prometheus:
+ enabled: true
+ servicemonitor:
+ enabled: true
+&lt;/code>&lt;/pre>&lt;p>After applying the manifest above — &lt;code>kubectl apply -f cert-manager.yml&lt;/code> — define a self-signed certificate, which is used to bootstrap a CA:&lt;/p>
+&lt;pre tabindex="0">&lt;code>apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+ name: selfsigned-cluster-issuer
+spec:
+ selfSigned: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+ name: selfsigned-ca
+spec:
+ isCA: true
+ commonName: selfsigned-ca
+ secretName: selfsigned-ca-root-secret
+ privateKey:
+ algorithm: ECDSA
+ size: 256
+ issuerRef:
+ name: selfsigned-cluster-issuer
+ kind: ClusterIssuer
+ group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+ name: selfsigned-issuer
+spec:
+ ca:
+ secretName: selfsigned-ca-root-secret
+&lt;/code>&lt;/pre>&lt;p>And now, I can use &lt;code>selfsigned-issuer&lt;/code> to issue TLS certificates for the ingress resources (&lt;em>Traefik ingress in the k3s&amp;rsquo;s case&lt;/em>). E.g. to play around, I run an open-source version of &lt;a href="https://languagetool.org/dev">LanguageTool&lt;/a> server. The ingress manifests for the server looks like as following:&lt;/p>
+&lt;pre tabindex="0">&lt;code>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+ name: languagetool-server
+ annotations:
+ kubernetes.io/ingress.class: traefik
+ cert-manager.io/issuer: selfsigned-issuer
+spec:
+ rules:
+ - host: languagetool.k8s.pi.home
+ http:
+ paths:
+ - path: /
+ pathType: ImplementationSpecific
+ backend:
+ service:
+ name: languagetool-server
+ port:
+ number: 8010
+ tls:
+ - hosts: [languagetool.k8s.pi.home]
+ secretName: languagetool-server-cert
+&lt;/code>&lt;/pre>&lt;p>Of course, any certificate signed by my CA won&amp;rsquo;t be automatically trusted by anyone, including my own system. If I try to access &lt;code>https://languagetool.k8s.pi.home&lt;/code>, any HTTP client will raise a &amp;ldquo;failed to verify the legitimacy of the server&amp;rdquo; issue. I don&amp;rsquo;t know if there is a better way to solve that, but I can hack that around by installing the cluster&amp;rsquo;s root CA certificate into the system&amp;rsquo;s keychain, and telling the system, that it should &amp;ldquo;trust&amp;rdquo; the certificate:&lt;/p>
+&lt;pre tabindex="0">&lt;code>$ kubectl get secret/selfsigned-ca-root-secret -o json \
+ | jq -r &amp;#39;.data[&amp;#34;ca.crt&amp;#34;]&amp;#39; \
+ | base64 -D &amp;gt; ~/tmp/selfsigned-root-ca.crt
+$ open ~/tmp/selfsigned-root-ca.crt
+&lt;/code>&lt;/pre>&lt;p>Choose &amp;ldquo;Always trust&amp;rdquo; the certificate in the keychain&amp;rsquo;s certificate settings. The server looks &lt;em>legitimate&lt;/em> now!&lt;/p></description></item><item><title>k3s with Ubuntu Server (arm64) on Raspberry Pi 4</title><link>https://vladimir.varank.in/notes/2020/01/raspi-ubuntu-arm64-k3s/</link><pubDate>Sat, 11 Jan 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/01/raspi-ubuntu-arm64-k3s/</guid><description>&lt;p>As I&amp;rsquo;ve &lt;a href="https://twitter.com/tvii/status/1215927299557797893?s=20">twitted&lt;/a> recently, I&amp;rsquo;m updating one of my Raspberry Pis to &lt;a href="https://ubuntu.com/download/raspberry-pi">Ubuntu Server 19.10 (arm64)&lt;/a>.&lt;/p>
 &lt;h2 id="one-of-raspberry-pis">&amp;ldquo;One of Raspberry Pis&amp;rdquo;?&lt;/h2>
 &lt;p>My home cluster is four &lt;a href="https://www.raspberrypi.org/products/raspberry-pi-4-model-b/?variant=raspberry-pi-4-model-b-2gb">Raspberry Pis 4 (2GB)&lt;/a>; all connected to my internet router through ethernet and
 powered with &lt;a href="https://www.amazon.de/gp/product/B00PTLSH9G/ref=ppx_yo_dt_b_asin_title_o03_s00?ie=UTF8&amp;amp;psc=1">60W 6 USB-ports charger&lt;/a>. All Pis build a small Kubernetes cluster that runs with &lt;a href="https://k3s.io/">k3s&lt;/a>.&lt;/p>

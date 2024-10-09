@@ -1,17 +1,103 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>µ-benchmarks on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/%C2%B5-benchmarks/</link><description>Recent content in µ-benchmarks on Vladimir Varankin</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Tue, 08 Oct 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/%C2%B5-benchmarks/index.xml" rel="self" type="application/rss+xml"/><item><title>[]byte to string conversion</title><link>https://vladimir.varank.in/notes/2019/10/go-bytes-string-conversion/</link><pubDate>Tue, 08 Oct 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/10/go-bytes-string-conversion/</guid><description>Go has an old wiki page, titled &amp;ldquo;Compiler And Runtime Optimizations&amp;rdquo;.
-The part I like most there is different cases where compiler doesn&amp;rsquo;t allocate memory for string to []byte conversions:
-For a map m of type map[string]T and []byte b, m[string(b)] doesn&amp;rsquo;t allocate (the temporary string copy of the byte slice isn&amp;rsquo;t made)
-Turned out, since this wiki page was written, more similar optimisations were added to the compiler.
-As it&amp;rsquo;s in Go 1.12+ the following cases are also listed in runtime/string.go:
-Strings comcatenation For the case &amp;quot;&amp;lt;&amp;quot; + string(b) + &amp;quot;&amp;gt;&amp;quot;, where b is []byte no extra copying of b is needed.
-Comparison if string(b) == &amp;#34;foo&amp;#34; { ··· } In the code above, b []byte also won&amp;rsquo;t be copied.
-There are still cases where compiler can&amp;rsquo;t optimise the code for us. In some of those cases it&amp;rsquo;s fine to do string to bytes conversion using a so called &amp;ldquo;unsafe trick&amp;rdquo; (accessing string&amp;rsquo;s underling data directly, with out copying the data from string to bytes and vice versa). One can find several ways of performing the trick, but none of them seems &amp;ldquo;the one that must be used&amp;rdquo;.
-After years of episodic discussions, a collegue of mine assembled the list of different conserns and about the proper way of doing it (see &amp;ldquo;unsafe conversion between string &amp;lt;-&amp;gt; []byte&amp;rdquo; topic on golang-nuts forum). Thanks to replies from Go team, our most valid way of doing it is following:
-// Refer to github.com/fmstephe/unsafeutil type stringHeader struct { data unsafe.Pointer stringLen int } type sliceHeader struct { data unsafe.Pointer sliceLen int sliceCap int } func StringToBytes(s string) (b []byte) { stringHeader := (*stringHeader)(unsafe.Pointer(&amp;amp;s)) sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;amp;b)) sliceHeader.data = stringHeader.data sliceHeader.sliceLen = len(s) sliceHeader.sliceCap = len(s) return b } func BytesToString(b []byte) (s string) { sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;amp;b)) stringHeader := (*stringHeader)(unsafe.Pointer(&amp;amp;s)) stringHeader.data = sliceHeader.data stringHeader.stringLen = len(b) return s }</description></item><item><title>Go's net/http.Headers</title><link>https://vladimir.varank.in/notes/2019/09/go-http-headers/</link><pubDate>Wed, 04 Sep 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/09/go-http-headers/</guid><description>One probably knows that net/http.Headers is no more than map[string][]string with extra specific methods. A usual way to initialize and populate such data-structure from an external representation is something like that:
-type Header map[string][]string func (h Header) Add(key, val string) { if val == &amp;#34;&amp;#34; { return } h[key] = append(h[key], val) } func main() { h := make(Header) h.Add(&amp;#34;Host&amp;#34;, &amp;#34;example.com&amp;#34;) h.Add(&amp;#34;Via&amp;#34;, &amp;#34;a.example.com&amp;#34;) h.Add(&amp;#34;Via&amp;#34;, &amp;#34;b.example.com&amp;#34;) } From the code above, one can notice that we allocated a new slice of strings for every unique key that we added to headers. For things like HTTP headers, that&amp;rsquo;re automatically parsed for every incoming request, this bunch of tiny allocations is something we&amp;rsquo;d like to avoid.
-I was curious to know if Go&amp;rsquo;s standard library cares about that.
-Looking at the implementation of net/textproto.Reader.ReadMIMEHeader(), which is used in the standard HTTP server, or Go 1.13’s new net/http.Header.Clone(), it turned out they solve the problem quite elegantly.
-We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.
-Knowing that, we can refactor the initial Header.Add as the following:
-type Header map[string][]string func (h Header) add(vv []string, key, val string) []string { if val == &amp;#34;&amp;#34; { ··· } // fast path for KV pair of a single value if h[key] == nil { vv = append(vv, value) h[key] = vv[:1:1] return vv[1:] } // slow path, when KV pair has two or more values h[key] = append(h[key], val) return vv } func main() { h := make(Header) // net/textprotocol pre-counts total number of request&amp;#39;s headers // to allocate the slice of known capacity vv := make([]string, 0) vv = h.add(vv, &amp;#34;Host&amp;#34;, &amp;#34;example.com&amp;#34;) vv = h.add(vv, &amp;#34;Via&amp;#34;, &amp;#34;a.example.com&amp;#34;) } Note that we use vv[:1:1] to create a sub-slice of a fixed capacity (length 1, capacity 1).
-If there is a KV-pair that has several values, e.g. &amp;ldquo;Via&amp;rdquo; header, Add will allocate a separate slice for that key, doubling its capacity.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Μ-Benchmarks on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/%CE%BC-benchmarks/</link><description>Recent content in Μ-Benchmarks on Vladimir Varankin</description><generator>Hugo</generator><language>en</language><lastBuildDate>Tue, 08 Oct 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/%CE%BC-benchmarks/index.xml" rel="self" type="application/rss+xml"/><item><title>[]byte to string conversion</title><link>https://vladimir.varank.in/notes/2019/10/go-bytes-string-conversion/</link><pubDate>Tue, 08 Oct 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/10/go-bytes-string-conversion/</guid><description>&lt;p>Go has an old wiki page, titled &amp;ldquo;&lt;a href="https://github.com/golang/go/wiki/CompilerOptimizations">Compiler And Runtime Optimizations&lt;/a>&amp;rdquo;.&lt;/p>
+&lt;p>The part I like most there is different cases where compiler doesn&amp;rsquo;t allocate memory for &lt;code>string&lt;/code> to &lt;code>[]byte&lt;/code> conversions:&lt;/p>
+&lt;blockquote>
+&lt;p>For a map m of type &lt;code>map[string]T&lt;/code> and &lt;code>[]byte b&lt;/code>, &lt;code>m[string(b)]&lt;/code> doesn&amp;rsquo;t allocate (the temporary string copy of the byte slice isn&amp;rsquo;t made)&lt;/p>
+&lt;/blockquote>
+&lt;p>Turned out, since this wiki page was written, more similar optimisations were added to the compiler.&lt;/p>
+&lt;p>As it&amp;rsquo;s in Go 1.12+ the following cases are also listed in &lt;a href="https://github.com/golang/go/blob/release-branch.go1.12/src/runtime/string.go#L128-L153">&lt;code>runtime/string.go&lt;/code>&lt;/a>:&lt;/p>
+&lt;ul>
+&lt;li>Strings comcatenation&lt;/li>
+&lt;/ul>
+&lt;p>For the case &lt;code>&amp;quot;&amp;lt;&amp;quot; + string(b) + &amp;quot;&amp;gt;&amp;quot;&lt;/code>, where &lt;code>b&lt;/code> is &lt;code>[]byte&lt;/code> no extra copying of &lt;code>b&lt;/code> is needed.&lt;/p>
+&lt;ul>
+&lt;li>Comparison&lt;/li>
+&lt;/ul>
+&lt;pre tabindex="0">&lt;code>if string(b) == &amp;#34;foo&amp;#34; { ··· }
+&lt;/code>&lt;/pre>&lt;p>In the code above, &lt;code>b []byte&lt;/code> also won&amp;rsquo;t be copied.&lt;/p>
+&lt;hr>
+&lt;p>There are still cases where compiler can&amp;rsquo;t optimise the code for us. In some of those cases
+it&amp;rsquo;s fine to do string to bytes conversion using a so called &amp;ldquo;&lt;code>unsafe&lt;/code> trick&amp;rdquo; (accessing string&amp;rsquo;s underling
+data directly, with out copying the data from string to bytes and vice versa). One can find several
+ways of performing the trick, but none of them seems &amp;ldquo;the one that must be used&amp;rdquo;.&lt;/p>
+&lt;p>After years of episodic discussions, a collegue of mine assembled the list of different conserns and about
+the proper way of doing it (&lt;em>see &amp;ldquo;&lt;a href="https://groups.google.com/d/topic/golang-nuts/Zsfk-VMd_fU/discussion">unsafe conversion between string &amp;lt;-&amp;gt; []byte&lt;/a>&amp;rdquo; topic on golang-nuts forum&lt;/em>).
+Thanks to replies from Go team, our most valid way of doing it is following:&lt;/p>
+&lt;pre tabindex="0">&lt;code>// Refer to github.com/fmstephe/unsafeutil
+
+type stringHeader struct {
+	data unsafe.Pointer
+	stringLen int
+}
+
+type sliceHeader struct {
+	data unsafe.Pointer
+	sliceLen int
+	sliceCap int
+}
+
+func StringToBytes(s string) (b []byte) {
+	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;amp;s))
+	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;amp;b))
+	sliceHeader.data = stringHeader.data
+	sliceHeader.sliceLen = len(s)
+	sliceHeader.sliceCap = len(s)
+	return b
+}
+
+func BytesToString(b []byte) (s string) {
+	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;amp;b))
+	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;amp;s))
+	stringHeader.data = sliceHeader.data
+	stringHeader.stringLen = len(b)
+	return s
+}
+&lt;/code>&lt;/pre></description></item><item><title>Go's net/http.Headers</title><link>https://vladimir.varank.in/notes/2019/09/go-http-headers/</link><pubDate>Wed, 04 Sep 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/09/go-http-headers/</guid><description>&lt;p>One probably knows that &lt;code>net/http.Headers&lt;/code> is no more than &lt;code>map[string][]string&lt;/code> with extra specific methods. A usual way to initialize and populate such data-structure from an external representation is something like that:&lt;/p>
+&lt;pre tabindex="0">&lt;code>type Header map[string][]string
+
+func (h Header) Add(key, val string) {
+ if val == &amp;#34;&amp;#34; {
+ return
+ }
+ h[key] = append(h[key], val)
+}
+
+func main() {
+ h := make(Header)
+ h.Add(&amp;#34;Host&amp;#34;, &amp;#34;example.com&amp;#34;)
+ h.Add(&amp;#34;Via&amp;#34;, &amp;#34;a.example.com&amp;#34;)
+ h.Add(&amp;#34;Via&amp;#34;, &amp;#34;b.example.com&amp;#34;)
+}
+&lt;/code>&lt;/pre>&lt;p>From the code above, one can notice that we allocated a new slice of strings for every unique key that we added to headers. For things like HTTP headers, that&amp;rsquo;re automatically parsed for every incoming request, this bunch of tiny allocations is something we&amp;rsquo;d like to avoid.&lt;/p>
+&lt;p>I was curious to know if Go&amp;rsquo;s standard library cares about that.&lt;/p>
+&lt;p>Looking at the implementation of &lt;a href="https://golang.org/pkg/net/textproto/#Reader.ReadMIMEHeader">&lt;code>net/textproto.Reader.ReadMIMEHeader()&lt;/code>&lt;/a>, which is used in the standard
+HTTP server, or Go 1.13’s new &lt;a href="https://golang.org/pkg/net/http/#Header.Clone">&lt;code>net/http.Header.Clone()&lt;/code>&lt;/a>, it turned out they solve the problem quite elegantly.&lt;/p>
+&lt;p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.&lt;/p>
+&lt;p>Knowing that, we can refactor the initial &lt;code>Header.Add&lt;/code> as the following:&lt;/p>
+&lt;pre tabindex="0">&lt;code>type Header map[string][]string
+
+func (h Header) add(vv []string, key, val string) []string {
+ if val == &amp;#34;&amp;#34; { ··· }
+
+ // fast path for KV pair of a single value
+ if h[key] == nil {
+ vv = append(vv, value)
+ h[key] = vv[:1:1]
+ return vv[1:]
+ }
+
+ // slow path, when KV pair has two or more values
+ h[key] = append(h[key], val)
+ return vv
+}
+
+func main() {
+ h := make(Header)
+ // net/textprotocol pre-counts total number of request&amp;#39;s headers
+ // to allocate the slice of known capacity
+ vv := make([]string, 0)
+
+ vv = h.add(vv, &amp;#34;Host&amp;#34;, &amp;#34;example.com&amp;#34;)
+ vv = h.add(vv, &amp;#34;Via&amp;#34;, &amp;#34;a.example.com&amp;#34;)
+}
+&lt;/code>&lt;/pre>&lt;p>Note that we use &lt;code>vv[:1:1]&lt;/code> to create a &lt;a href="https://golang.org/ref/spec#Slice_expressions">sub-slice of a fixed capacity&lt;/a> (length 1, capacity 1).&lt;/p>
+&lt;p>If there is a KV-pair that has several values, e.g. &amp;ldquo;Via&amp;rdquo; header, &lt;code>Add&lt;/code> will allocate a separate slice for that key, doubling its capacity.&lt;/p></description></item></channel></rss>

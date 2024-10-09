@@ -1,9 +1,76 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>enum on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/enum/</link><description>Recent content in enum on Vladimir Varankin</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Fri, 29 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/enum/index.xml" rel="self" type="application/rss+xml"/><item><title>Compile-time safety for enumerations in Go</title><link>https://vladimir.varank.in/notes/2023/09/compile-time-safety-for-enumerations-in-go/</link><pubDate>Fri, 29 Sep 2023 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2023/09/compile-time-safety-for-enumerations-in-go/</guid><description>Last month, a colleague of mine asked how to reason about enumerated values (&amp;ldquo;enums&amp;rdquo;) in Go. They wanted to benefit from Go&amp;rsquo;s type-safety and to prevent users from misusing the package.
-For an imaginary example, that enumerates possible colours, the snippet below shows how we typically implement this:
-type Color string const ( Red Color = &amp;#34;red&amp;#34; Green Color = &amp;#34;green&amp;#34; Blue Color = &amp;#34;blue&amp;#34; ) But, just like Bill Kennedy illustrated it in the blog post on a similar topic, such implementation allows a user to pass any &amp;ldquo;untyped constant string&amp;rdquo; in places where the Color type is expected. Also, a user can declare their own value of a type Color, going beyond what was defined by the initial enumeration set.
-package main func main() { PrintColor(color.Red) PrintColor(&amp;#34;RAINBOW&amp;#34;) var rainbow color.Color = &amp;#34;🌈&amp;#34; PrintColor(rainbow) } func PrintColor(c color.Color) { fmt.Printf(&amp;#34;%v\n&amp;#34;, c) } // Outputs: red RAINBOW 🌈 Note how in the snippet above, the user both called PrintColor(“RAINBOW”) and defined their own variable of type color.Color, which holds a random string.
-Update: a number of people pointed at my choice of words in the paragraph below, where I introduce a way to solve the problems. Indeed, &amp;ldquo;elegant&amp;rdquo; isn&amp;rsquo;t the most accurate one to describe this solution :) Also, refer to #19412 for the discussion about adding sum types to Go.
-Go&amp;rsquo;s type system allows preventing both issues in a rather elegant way. Let&amp;rsquo;s declare the Color interface, with an unexported method, while implementing this interface in an unexported type color:
-package color type Color interface { xxxProtected() } type color string func (c color) xxxProtected() {} const ( Red color = &amp;#34;red&amp;#34; Green color = &amp;#34;green&amp;#34; Blue color = &amp;#34;blue&amp;#34; ) Because no types outside of our package color can implement the unexported method color.Color.xxxProtected(), we limit the possible implementations of the Color interface to only values, defined in the package color.
-package main func main() { PrintColor(color.Red) //PrintColor(&amp;#34;RAINBOW&amp;#34;) // cannot use (constant of type string) as color.Color } func PrintColor(c color.Color) { fmt.Printf(&amp;#34;%v\n&amp;#34;, c) } If a user tries to pass an untyped constant string or declare their own variant of the colour, the code won&amp;rsquo;t compile, resulting with an error:
-package main type mycolor string func (c mycolor) xxxProtected() {} func main() { black := mycolor(&amp;#34;BLACK&amp;#34;) PrintColor(black) } OUTPUTS: ./prog.go:9:13: cannot use black (variable of type mycolor) as color.Color value in argument to PrintColor: mycolor does not implement color.Color (missing method xxxProtected) Have you stumbled upon a scenario, where such strict compile-time checks for enumerated values was needed? Share your thoughts with me on Hacker News, Twitter or Bluesky.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Enum on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/enum/</link><description>Recent content in Enum on Vladimir Varankin</description><generator>Hugo</generator><language>en</language><lastBuildDate>Fri, 29 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/enum/index.xml" rel="self" type="application/rss+xml"/><item><title>Compile-time safety for enumerations in Go</title><link>https://vladimir.varank.in/notes/2023/09/compile-time-safety-for-enumerations-in-go/</link><pubDate>Fri, 29 Sep 2023 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2023/09/compile-time-safety-for-enumerations-in-go/</guid><description>&lt;p>Last month, a colleague of mine asked how to reason about enumerated values (&amp;ldquo;enums&amp;rdquo;) in Go. They wanted to benefit from Go&amp;rsquo;s type-safety and to prevent users from misusing the package.&lt;/p>
+&lt;p>For an imaginary example, that enumerates possible colours, the snippet below shows how we typically implement this:&lt;/p>
+&lt;pre tabindex="0">&lt;code>type Color string
+
+const (
+ Red Color = &amp;#34;red&amp;#34;
+ Green Color = &amp;#34;green&amp;#34;
+ Blue Color = &amp;#34;blue&amp;#34;
+)
+&lt;/code>&lt;/pre>&lt;p>But, just like &lt;a href="https://twitter.com/goinggodotnet/">Bill Kennedy&lt;/a> illustrated it in the &lt;a href="https://www.ardanlabs.com/blog/2023/09/implementing-enumerations-in-golang.html">blog post on a similar topic&lt;/a>, such implementation allows a user to pass any &amp;ldquo;&lt;a href="https://go.dev/blog/constants#string-constants">untyped constant string&lt;/a>&amp;rdquo; in places where the &lt;code>Color&lt;/code> type is expected. Also, a user can declare their own value of a type &lt;code>Color&lt;/code>, going beyond what was defined by the initial enumeration set.&lt;/p>
+&lt;pre tabindex="0">&lt;code>package main
+
+func main() {
+ PrintColor(color.Red)
+
+ PrintColor(&amp;#34;RAINBOW&amp;#34;)
+
+ var rainbow color.Color = &amp;#34;🌈&amp;#34;
+ PrintColor(rainbow)
+}
+
+func PrintColor(c color.Color) {
+ fmt.Printf(&amp;#34;%v\n&amp;#34;, c)
+}
+
+// Outputs:
+red
+RAINBOW
+🌈
+&lt;/code>&lt;/pre>&lt;p>Note how in the snippet above, the user both called &lt;code>PrintColor(“RAINBOW”)&lt;/code> and defined their own variable of type &lt;code>color.Color&lt;/code>, which holds a random string.&lt;/p>
+&lt;p>&lt;em>Update: a number of people pointed at my choice of words in the paragraph below, where I introduce a way to solve the problems. Indeed, &amp;ldquo;elegant&amp;rdquo; isn&amp;rsquo;t the most accurate one to describe this solution :) Also, refer to &lt;a href="https://go.dev/issues/19412">#19412&lt;/a> for the discussion about adding sum types to Go.&lt;/em>&lt;/p>
+&lt;hr>
+&lt;p>Go&amp;rsquo;s type system allows preventing both issues &lt;del>in a rather elegant way&lt;/del>. Let&amp;rsquo;s declare the &lt;code>Color&lt;/code> interface, with an &lt;em>unexported method&lt;/em>, while implementing this interface in an unexported type &lt;code>color&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>package color
+
+type Color interface {
+ xxxProtected()
+}
+
+type color string
+
+func (c color) xxxProtected() {}
+
+const (
+	Red color = &amp;#34;red&amp;#34;
+	Green color = &amp;#34;green&amp;#34;
+	Blue color = &amp;#34;blue&amp;#34;
+)
+&lt;/code>&lt;/pre>&lt;p>Because no types outside of our package &lt;code>color&lt;/code> can implement the unexported method &lt;code>color.Color.xxxProtected()&lt;/code>, we limit the possible implementations of the &lt;code>Color&lt;/code> interface to only values, defined in the package &lt;code>color&lt;/code>.&lt;/p>
+&lt;pre tabindex="0">&lt;code>package main
+
+func main() {
+ PrintColor(color.Red)
+
+ //PrintColor(&amp;#34;RAINBOW&amp;#34;) // cannot use (constant of type string) as color.Color
+}
+
+func PrintColor(c color.Color) {
+ fmt.Printf(&amp;#34;%v\n&amp;#34;, c)
+}
+&lt;/code>&lt;/pre>&lt;p>If a user tries to pass an untyped constant string or declare their own variant of the colour, the code won&amp;rsquo;t compile, resulting with an error:&lt;/p>
+&lt;pre tabindex="0">&lt;code>package main
+
+type mycolor string
+
+func (c mycolor) xxxProtected() {}
+
+func main() {
+ black := mycolor(&amp;#34;BLACK&amp;#34;)
+ PrintColor(black)
+}
+
+OUTPUTS:
+./prog.go:9:13: cannot use black (variable of type mycolor) as color.Color value in argument to PrintColor:
+mycolor does not implement color.Color (missing method xxxProtected)
+&lt;/code>&lt;/pre>&lt;p>&lt;em>Have you stumbled upon a scenario, where such strict compile-time checks for enumerated values was needed? Share your thoughts with me on &lt;a href="https://news.ycombinator.com/item?id=37703175">Hacker News&lt;/a>, &lt;a href="https://twitter.com/tvii/status/1707736145524600838">Twitter&lt;/a> or &lt;a href="https://bsky.app/profile/vladimir.varank.in/post/3kajuu4lrn52b">Bluesky&lt;/a>.&lt;/em>&lt;/p></description></item></channel></rss>

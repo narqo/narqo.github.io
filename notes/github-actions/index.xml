@@ -1,6 +1,29 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>github actions on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/github-actions/</link><description>Recent content in github actions on Vladimir Varankin</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 19 Sep 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/github-actions/index.xml" rel="self" type="application/rss+xml"/><item><title>Github Actions and GOPATH</title><link>https://vladimir.varank.in/notes/2019/09/github-actions-and-gopath/</link><pubDate>Thu, 19 Sep 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/09/github-actions-and-gopath/</guid><description>The other day I received my beta access to GitHub Actions. To try them out I picked an existing pet project and created a workflow using a Go project template provided by GitHub. As it&amp;rsquo;s in September 2019, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.
-My project is a classic Go service ;) meaning: it uses vendoring and doesn&amp;rsquo;t use Go modules. So no need for &amp;ldquo;get dependencies&amp;rdquo; step. And it requires to be inside the GOPATH. With that, the provided workflow needed some adjustment.
-After some trials and errors, I&amp;rsquo;ve managed to make checkout step to clone the repo into the correct destination inside the GOPATH. Here is the final workflow:
-name: Run Go test on: [pull_request] jobs: test: strategy: matrix: go-version: [1.12.9] runs-on: ubuntu-latest steps: - uses: actions/setup-go@v1 with: go-version: ${{ matrix.go-version }} - uses: actions/checkout@v1 with: path: ./src/github.com/${{ github.repository }} fetch-depth: 5 - run: make test env: GOPATH: ${{ runner.workspace }} Note, how actions/checkout@v1 above uses custom path input parameter. I set the path to ./src/github.com/${{ github.repository }}, so the project is checked out to src directory in the runners&amp;rsquo;s workspace, which I later pass as the value of GOPATH to the &amp;ldquo;make test&amp;rdquo; step. The leading dot in ./src seems very important — I&amp;rsquo;ve spent the majority of the time trying to figure out that part — refer to this issue.
-See the workflow in action.
-To learn more about those ${{ ··· }} &amp;ldquo;macroses&amp;rdquo; I suggest looking at the Actions&amp;rsquo; &amp;ldquo;Contexts and expression syntax&amp;rdquo; documentation.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Github Actions on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/github-actions/</link><description>Recent content in Github Actions on Vladimir Varankin</description><generator>Hugo</generator><language>en</language><lastBuildDate>Thu, 19 Sep 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/github-actions/index.xml" rel="self" type="application/rss+xml"/><item><title>Github Actions and GOPATH</title><link>https://vladimir.varank.in/notes/2019/09/github-actions-and-gopath/</link><pubDate>Thu, 19 Sep 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/09/github-actions-and-gopath/</guid><description>&lt;p>The other day I received my beta access to &lt;a href="https://github.com/features/actions">GitHub Actions&lt;/a>. To try them out I picked an existing pet project and created a &lt;em>workflow&lt;/em> using a Go project template provided by GitHub. As it&amp;rsquo;s in &lt;em>September 2019&lt;/em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.&lt;/p>
+&lt;p>My project is a &lt;em>classic Go service&lt;/em> ;) meaning: it uses vendoring and doesn&amp;rsquo;t use Go modules. So no need for &amp;ldquo;get dependencies&amp;rdquo; step. And it requires to be inside the &lt;code>GOPATH&lt;/code>. With that, the provided workflow needed some adjustment.&lt;/p>
+&lt;p>After some trials and errors, I&amp;rsquo;ve managed to make &lt;code>checkout&lt;/code> step to clone the repo into the correct destination inside the &lt;code>GOPATH&lt;/code>. Here is the final workflow:&lt;/p>
+&lt;pre tabindex="0">&lt;code>name: Run Go test
+on: [pull_request]
+jobs:
+ test:
+ strategy:
+ matrix:
+ go-version: [1.12.9]
+
+ runs-on: ubuntu-latest
+
+ steps:
+ - uses: actions/setup-go@v1
+ with:
+ go-version: ${{ matrix.go-version }}
+
+ - uses: actions/checkout@v1
+ with:
+ path: ./src/github.com/${{ github.repository }}
+ fetch-depth: 5
+
+ - run: make test
+ env:
+ GOPATH: ${{ runner.workspace }}
+&lt;/code>&lt;/pre>&lt;p>Note, how &lt;code>actions/checkout@v1&lt;/code> above uses custom &lt;code>path&lt;/code> input parameter. I set the path to &lt;code>./src/github.com/${{ github.repository }}&lt;/code>, so the project is checked out to &lt;code>src&lt;/code> directory in the runners&amp;rsquo;s workspace, which I later pass as the value of &lt;code>GOPATH&lt;/code> to the &amp;ldquo;make test&amp;rdquo; step. The leading dot in &lt;code>./src&lt;/code> seems very important — I&amp;rsquo;ve spent the majority of the time trying to figure out that part — refer to &lt;a href="https://github.com/actions/checkout/issues/41">this issue&lt;/a>.&lt;/p>
+&lt;p>&lt;a href="https://github.com/profefe/profefe/actions">See the workflow in action&lt;/a>.&lt;/p>
+&lt;p>To learn more about those &lt;code>${{ ··· }}&lt;/code> &amp;ldquo;macroses&amp;rdquo; I suggest looking at the Actions&amp;rsquo; &amp;ldquo;&lt;a href="https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions">Contexts and expression syntax&lt;/a>&amp;rdquo; documentation.&lt;/p></description></item></channel></rss>

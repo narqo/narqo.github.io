@@ -1,95 +1,541 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Go on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/go/</link><description>Recent content in Go on Vladimir Varankin</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Mon, 29 Jan 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/go/index.xml" rel="self" type="application/rss+xml"/><item><title>Client-side pagination in Go (range-over function edition)</title><link>https://vladimir.varank.in/notes/2024/01/client-side-pagination-in-go-range-over-function-edition/</link><pubDate>Mon, 29 Jan 2024 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2024/01/client-side-pagination-in-go-range-over-function-edition/</guid><description>&lt;p>In light of Go 1.22&amp;rsquo;s experiment, that allows iterating over a function, I wanted to revisit my note from 2022 on &lt;a href="https://vladimir.varank.in/notes/2022/05/a-real-life-use-case-for-generics-in-go-api-for-client-side-pagination/">client-side pagination, using a generic iterator&lt;/a>, and get an idea on how the range-over function might help with the task. I will not delve into the details of the changes that Go brings. Refer to the &amp;ldquo;&lt;a href="https://go.dev/wiki/RangefuncExperiment">Rangefunc Experiment&lt;/a>&amp;rdquo; on the Go wiki for more details. One only thing to mention, is that the executable must be built with the &lt;code>GOEXPERIMENT=rangefunc&lt;/code> environment variable, to enable the experiment.&lt;/p></description></item><item><title>Compile-time safety for enumerations in Go</title><link>https://vladimir.varank.in/notes/2023/09/compile-time-safety-for-enumerations-in-go/</link><pubDate>Fri, 29 Sep 2023 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2023/09/compile-time-safety-for-enumerations-in-go/</guid><description>Last month, a colleague of mine asked how to reason about enumerated values (&amp;ldquo;enums&amp;rdquo;) in Go. They wanted to benefit from Go&amp;rsquo;s type-safety and to prevent users from misusing the package.
-For an imaginary example, that enumerates possible colours, the snippet below shows how we typically implement this:
-type Color string const ( Red Color = &amp;#34;red&amp;#34; Green Color = &amp;#34;green&amp;#34; Blue Color = &amp;#34;blue&amp;#34; ) But, just like Bill Kennedy illustrated it in the blog post on a similar topic, such implementation allows a user to pass any &amp;ldquo;untyped constant string&amp;rdquo; in places where the Color type is expected. Also, a user can declare their own value of a type Color, going beyond what was defined by the initial enumeration set.
-package main func main() { PrintColor(color.Red) PrintColor(&amp;#34;RAINBOW&amp;#34;) var rainbow color.Color = &amp;#34;🌈&amp;#34; PrintColor(rainbow) } func PrintColor(c color.Color) { fmt.Printf(&amp;#34;%v\n&amp;#34;, c) } // Outputs: red RAINBOW 🌈 Note how in the snippet above, the user both called PrintColor(“RAINBOW”) and defined their own variable of type color.Color, which holds a random string.
-Update: a number of people pointed at my choice of words in the paragraph below, where I introduce a way to solve the problems. Indeed, &amp;ldquo;elegant&amp;rdquo; isn&amp;rsquo;t the most accurate one to describe this solution :) Also, refer to #19412 for the discussion about adding sum types to Go.
-Go&amp;rsquo;s type system allows preventing both issues in a rather elegant way. Let&amp;rsquo;s declare the Color interface, with an unexported method, while implementing this interface in an unexported type color:
-package color type Color interface { xxxProtected() } type color string func (c color) xxxProtected() {} const ( Red color = &amp;#34;red&amp;#34; Green color = &amp;#34;green&amp;#34; Blue color = &amp;#34;blue&amp;#34; ) Because no types outside of our package color can implement the unexported method color.Color.xxxProtected(), we limit the possible implementations of the Color interface to only values, defined in the package color.
-package main func main() { PrintColor(color.Red) //PrintColor(&amp;#34;RAINBOW&amp;#34;) // cannot use (constant of type string) as color.Color } func PrintColor(c color.Color) { fmt.Printf(&amp;#34;%v\n&amp;#34;, c) } If a user tries to pass an untyped constant string or declare their own variant of the colour, the code won&amp;rsquo;t compile, resulting with an error:
-package main type mycolor string func (c mycolor) xxxProtected() {} func main() { black := mycolor(&amp;#34;BLACK&amp;#34;) PrintColor(black) } OUTPUTS: ./prog.go:9:13: cannot use black (variable of type mycolor) as color.Color value in argument to PrintColor: mycolor does not implement color.Color (missing method xxxProtected) Have you stumbled upon a scenario, where such strict compile-time checks for enumerated values was needed? Share your thoughts with me on Hacker News, Twitter or Bluesky.</description></item><item><title>Env variables, you will (likely) find set in my Kubernetes deployments</title><link>https://vladimir.varank.in/notes/2023/05/env-variables-you-will-likely-find-set-in-my-kubernetes-deployments/</link><pubDate>Mon, 01 May 2023 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2023/05/env-variables-you-will-likely-find-set-in-my-kubernetes-deployments/</guid><description>&lt;p>Kubernetes allows us to pass the values declared in a Pod&amp;rsquo;s manifest, to its containers via environment variables (&lt;a href="https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/">docs&lt;/a>). A typical situation, where I find this handy is when I run a Go application in a Pod.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Go on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/go/</link><description>Recent content in Go on Vladimir Varankin</description><generator>Hugo</generator><language>en</language><lastBuildDate>Mon, 29 Jan 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/go/index.xml" rel="self" type="application/rss+xml"/><item><title>Client-side pagination in Go (range-over function edition)</title><link>https://vladimir.varank.in/notes/2024/01/client-side-pagination-in-go-range-over-function-edition/</link><pubDate>Mon, 29 Jan 2024 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2024/01/client-side-pagination-in-go-range-over-function-edition/</guid><description>&lt;p>In light of Go 1.22&amp;rsquo;s experiment, that allows iterating over a function, I wanted to revisit my note from 2022 on &lt;a href="https://vladimir.varank.in/notes/2022/05/a-real-life-use-case-for-generics-in-go-api-for-client-side-pagination/">client-side pagination, using a generic iterator&lt;/a>, and get an idea on how the range-over function might help with the task. I will not delve into the details of the changes that Go brings. Refer to the &amp;ldquo;&lt;a href="https://go.dev/wiki/RangefuncExperiment">Rangefunc Experiment&lt;/a>&amp;rdquo; on the Go wiki for more details. One only thing to mention, is that the executable must be built with the &lt;code>GOEXPERIMENT=rangefunc&lt;/code> environment variable, to enable the experiment.&lt;/p></description></item><item><title>Compile-time safety for enumerations in Go</title><link>https://vladimir.varank.in/notes/2023/09/compile-time-safety-for-enumerations-in-go/</link><pubDate>Fri, 29 Sep 2023 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2023/09/compile-time-safety-for-enumerations-in-go/</guid><description>&lt;p>Last month, a colleague of mine asked how to reason about enumerated values (&amp;ldquo;enums&amp;rdquo;) in Go. They wanted to benefit from Go&amp;rsquo;s type-safety and to prevent users from misusing the package.&lt;/p>
+&lt;p>For an imaginary example, that enumerates possible colours, the snippet below shows how we typically implement this:&lt;/p>
+&lt;pre tabindex="0">&lt;code>type Color string
+
+const (
+ Red Color = &amp;#34;red&amp;#34;
+ Green Color = &amp;#34;green&amp;#34;
+ Blue Color = &amp;#34;blue&amp;#34;
+)
+&lt;/code>&lt;/pre>&lt;p>But, just like &lt;a href="https://twitter.com/goinggodotnet/">Bill Kennedy&lt;/a> illustrated it in the &lt;a href="https://www.ardanlabs.com/blog/2023/09/implementing-enumerations-in-golang.html">blog post on a similar topic&lt;/a>, such implementation allows a user to pass any &amp;ldquo;&lt;a href="https://go.dev/blog/constants#string-constants">untyped constant string&lt;/a>&amp;rdquo; in places where the &lt;code>Color&lt;/code> type is expected. Also, a user can declare their own value of a type &lt;code>Color&lt;/code>, going beyond what was defined by the initial enumeration set.&lt;/p>
+&lt;pre tabindex="0">&lt;code>package main
+
+func main() {
+ PrintColor(color.Red)
+
+ PrintColor(&amp;#34;RAINBOW&amp;#34;)
+
+ var rainbow color.Color = &amp;#34;🌈&amp;#34;
+ PrintColor(rainbow)
+}
+
+func PrintColor(c color.Color) {
+ fmt.Printf(&amp;#34;%v\n&amp;#34;, c)
+}
+
+// Outputs:
+red
+RAINBOW
+🌈
+&lt;/code>&lt;/pre>&lt;p>Note how in the snippet above, the user both called &lt;code>PrintColor(“RAINBOW”)&lt;/code> and defined their own variable of type &lt;code>color.Color&lt;/code>, which holds a random string.&lt;/p>
+&lt;p>&lt;em>Update: a number of people pointed at my choice of words in the paragraph below, where I introduce a way to solve the problems. Indeed, &amp;ldquo;elegant&amp;rdquo; isn&amp;rsquo;t the most accurate one to describe this solution :) Also, refer to &lt;a href="https://go.dev/issues/19412">#19412&lt;/a> for the discussion about adding sum types to Go.&lt;/em>&lt;/p>
+&lt;hr>
+&lt;p>Go&amp;rsquo;s type system allows preventing both issues &lt;del>in a rather elegant way&lt;/del>. Let&amp;rsquo;s declare the &lt;code>Color&lt;/code> interface, with an &lt;em>unexported method&lt;/em>, while implementing this interface in an unexported type &lt;code>color&lt;/code>:&lt;/p>
+&lt;pre tabindex="0">&lt;code>package color
+
+type Color interface {
+ xxxProtected()
+}
+
+type color string
+
+func (c color) xxxProtected() {}
+
+const (
+	Red color = &amp;#34;red&amp;#34;
+	Green color = &amp;#34;green&amp;#34;
+	Blue color = &amp;#34;blue&amp;#34;
+)
+&lt;/code>&lt;/pre>&lt;p>Because no types outside of our package &lt;code>color&lt;/code> can implement the unexported method &lt;code>color.Color.xxxProtected()&lt;/code>, we limit the possible implementations of the &lt;code>Color&lt;/code> interface to only values, defined in the package &lt;code>color&lt;/code>.&lt;/p>
+&lt;pre tabindex="0">&lt;code>package main
+
+func main() {
+ PrintColor(color.Red)
+
+ //PrintColor(&amp;#34;RAINBOW&amp;#34;) // cannot use (constant of type string) as color.Color
+}
+
+func PrintColor(c color.Color) {
+ fmt.Printf(&amp;#34;%v\n&amp;#34;, c)
+}
+&lt;/code>&lt;/pre>&lt;p>If a user tries to pass an untyped constant string or declare their own variant of the colour, the code won&amp;rsquo;t compile, resulting with an error:&lt;/p>
+&lt;pre tabindex="0">&lt;code>package main
+
+type mycolor string
+
+func (c mycolor) xxxProtected() {}
+
+func main() {
+ black := mycolor(&amp;#34;BLACK&amp;#34;)
+ PrintColor(black)
+}
+
+OUTPUTS:
+./prog.go:9:13: cannot use black (variable of type mycolor) as color.Color value in argument to PrintColor:
+mycolor does not implement color.Color (missing method xxxProtected)
+&lt;/code>&lt;/pre>&lt;p>&lt;em>Have you stumbled upon a scenario, where such strict compile-time checks for enumerated values was needed? Share your thoughts with me on &lt;a href="https://news.ycombinator.com/item?id=37703175">Hacker News&lt;/a>, &lt;a href="https://twitter.com/tvii/status/1707736145524600838">Twitter&lt;/a> or &lt;a href="https://bsky.app/profile/vladimir.varank.in/post/3kajuu4lrn52b">Bluesky&lt;/a>.&lt;/em>&lt;/p></description></item><item><title>Env variables, you will (likely) find set in my Kubernetes deployments</title><link>https://vladimir.varank.in/notes/2023/05/env-variables-you-will-likely-find-set-in-my-kubernetes-deployments/</link><pubDate>Mon, 01 May 2023 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2023/05/env-variables-you-will-likely-find-set-in-my-kubernetes-deployments/</guid><description>&lt;p>Kubernetes allows us to pass the values declared in a Pod&amp;rsquo;s manifest, to its containers via environment variables (&lt;a href="https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/">docs&lt;/a>). A typical situation, where I find this handy is when I run a Go application in a Pod.&lt;/p>
 &lt;p>As discussed in the previous note, out of the box, &lt;a href="https://vladimir.varank.in/notes/2023/01/go-runtime-vs-cfs-quota/">Go runtime isn&amp;rsquo;t aware if it runs inside a container&lt;/a>. This can lead to confusing situations, when the runtime adjusts its behaviour, after observing the resources (CPU and memory) available on the cluster&amp;rsquo;s node, instead of the resources, a developer or an operator restricted the deployment with.&lt;/p></description></item><item><title>Go runtime vs CFS quota</title><link>https://vladimir.varank.in/notes/2023/01/go-runtime-vs-cfs-quota/</link><pubDate>Thu, 12 Jan 2023 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2023/01/go-runtime-vs-cfs-quota/</guid><description>&lt;p>As of today, the Go runtime isn&amp;rsquo;t aware if it runs inside a container under the resource constraints (CPU or memory). The runtime sees the resources available for the container&amp;rsquo;s underlying host OS, e.g. the VM where the container runs, and tries to optimize its behaviour base on what it sees. For container runtimes on Linux, which implements the CPU restrictions via CFS (&amp;ldquo;Completely Fair Scheduler&amp;rdquo;), a mismatch in what the application thinks is has, and what the OS allows to use, can lead to the poor performance of the application after the unexpected throttling.&lt;/p>
-&lt;p>For example, a Go application, that runs in a container, constrained with 0.5 CPU, running on a host with 2 CPU, will observe 2 available CPU cores. That is the application&amp;rsquo;s calls to &lt;a href="https://pkg.go.dev/runtime#NumCPU">&lt;code>runtime.NumCPU()&lt;/code>&lt;/a> and &lt;a href="https://pkg.go.dev/runtime#GOMAXPROCS">&lt;code>runtime.GOMAXPROCS()&lt;/code>&lt;/a> will get us &amp;ldquo;2&amp;rdquo;. Because the Go runtime is optimized for the maximum utilization of the available compute under the concurrent workload, the goroutines it spawns are distributed to the internal thread pool, created with the assumption of two available CPU cores. This causes the application to throttle after the sum of the time it spend on the CPU cores per CFS period become equals to the quota of the container. With &lt;a href="https://www.kernel.org/doc/html/latest/scheduler/sched-bwc.html#management">the default CFS period&lt;/a> 100ms, the CFS quota of this container 0.5 CPU, and two threads running on different CPU cores, the application is throttled after 25ms every 100ms.&lt;/p></description></item><item><title>Bookmarks (issue 10)</title><link>https://vladimir.varank.in/notes/2022/12/bookmarks-10/</link><pubDate>Sat, 31 Dec 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/12/bookmarks-10/</guid><description>The 22 BEST Basslines of 2022 (Patrick Hunter).
-Building a custom code search index in Go for searchcodecom (Ben Boyter).
-Kubernetes resources under the hood. This year was rich for deep tech articles and talks, that explain how CPU requests and limits work in Kubernetes. This three-part series is no exception.
-John Carmack on resigning from Meta. A post that spawned many intresting opinions on the internet: &amp;ldquo;You can&amp;rsquo;t have top people in X (performance, security, whatever) work for you and only half-care about X at the same time. They will move&amp;rdquo;.</description></item><item><title>How "go test" runs tests</title><link>https://vladimir.varank.in/notes/2022/12/how-go-test-runs-tests/</link><pubDate>Thu, 15 Dec 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/12/how-go-test-runs-tests/</guid><description>When I run go test ./foo, Go toolchain performs several tricks under the hood.
-First — skipping the intermediate preparation steps, like parsing the command line flags and checking for cached results — the toolchain generates a package main, which will run all TestXxx functions for a package under the test. Then it compiles a testing-binary, that includes the generated code, and the code of the package and its _test.go files.
-The steps above are somewhere equivalent to running the following command:
-&amp;gt; go test -c -o foo.test ./foo # The resulting &amp;#34;foo.test&amp;#34; is indeed an executable &amp;gt; file foo.test foo.test: Mach-O 64-bit executable x86_64 This binary includes a generated function &amp;ldquo;main&amp;rdquo;, that, eventually, calls the packages TestMain(m *testing.M) (if one exists), and executes all the TestXxx(t *testing.T) functions, which the toolchain found during the code-generation.
-For the details of how the generated &amp;ldquo;main&amp;rdquo; looks like, refer to the source code of the internal package &amp;ldquo;load&amp;rdquo;.
-Next, the toolchain executes the built binary, setting the current working directory to the path of the original package foo, which is equivalent to running the following:
-&amp;gt; cd ./foo &amp;gt; ./../foo.test The important (and sometimes not obvious) part is that Go toolchain builds a dedicated binary for every package, under the testing scope. That is, in the example above, the testing binary contains only the code of the package &amp;ldquo;foo&amp;rdquo;, its dependencies, and the code in its _test.go files. If we ran the tests for several packages — go test ./pkg/... — the toolchain will generate, built and execute individual binaries for every package below pkg/. This makes the testing of each package fully-isolated.
-There are lots of other things happening underneath, including code coverage, benchmarking, etc. Have a look through the documentation under go help test and go help testflag, for some more details.</description></item><item><title>Bookmarks (issue 9)</title><link>https://vladimir.varank.in/notes/2022/11/bookmarks-9/</link><pubDate>Wed, 30 Nov 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/11/bookmarks-9/</guid><description>Kubernetes removals, deprecations, and major changes in 1.26.
-Performance evaluation of autoscaling strategies in Kubernetes (Kewyn Akshlley). tl;dr; After comparing the performance of horizontal and vertical autoscaling using synthetic load, the horizontal autoscaling seems more efficient, reacts faster to the load variation, and results in a lower impact on the application&amp;rsquo;s response time.
-How Pinterest delivers software at scale (Go Time, podcast). A very refreshing discussion about real-world technical challenges large organizations face.
-Adam Dymitruk on Event Modeling (Software Engineering Radio, podcast). Event Modeling: what is it?</description></item><item><title>Bookmarks (issue 6)</title><link>https://vladimir.varank.in/notes/2022/08/bookmarks-6/</link><pubDate>Wed, 31 Aug 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/08/bookmarks-6/</guid><description>Kubernetes antipatterns: CPU Limits. Always define CPU requests; never define CPU limits.
-Explaining the unexplainable: buffers in PostgreSQL. Shared buffers are those, which&amp;rsquo;re&amp;rsquo; &amp;ldquo;shared&amp;rdquo; between several DB sessions, i.e. data pages, indices, etc; local buffers, are &amp;ldquo;local&amp;rdquo; to a session, i.e. for temporal tables; temp buffers are for intermediate objects, i.e. when the DBMS does hashing and sorting.
-Rust Iterator pattern with iter(), into_iter() and iter_mut() methods.
-Standard iterator interface in Go (Ian Lance Taylor via GitHub Discussions).</description></item><item><title>Bookmarks (issue 4)</title><link>https://vladimir.varank.in/notes/2022/06/bookmarks-4/</link><pubDate>Thu, 30 Jun 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/06/bookmarks-4/</guid><description>Go 1.19beta1. As usual, lots of good improvements in the language&amp;rsquo;s runtime and the compiler, with one particularly interesting addition being the new &amp;ldquo;knob&amp;rdquo; runtime/debug.SetMemoryLimit.
-How to use gender-neutral language at work and in life (Grammarly). &amp;ldquo;Luckily, the English language is relatively gender-neutral in many respects&amp;rdquo; [at least, when compared to Russian and German languages].
-Meet passkeys (Apple) and Everything you want to know about WebAuthn (OktaDev). As you can guess, I&amp;rsquo;m very excited with Apple stepping onto the path to a passwordless future, while betting on WebAuthn standard.
-Replace CAPTCHAs with Private Access Tokens (Apple), Private Access Tokens: stepping into the privacy-respecting, CAPTCHA-less future we were promised (Fastly), Private Access Tokens: eliminating CAPTCHAs on iPhones and Macs with open standards (Cloudflare).</description></item><item><title>A real life use-case for generics in Go: API for client-side pagination</title><link>https://vladimir.varank.in/notes/2022/05/a-real-life-use-case-for-generics-in-go-api-for-client-side-pagination/</link><pubDate>Tue, 17 May 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/05/a-real-life-use-case-for-generics-in-go-api-for-client-side-pagination/</guid><description>&lt;p>Let&amp;rsquo;s say we have a RESTful API for a general ledger, with the endpoints, that return a paginated collection of resources:&lt;/p>
+&lt;p>For example, a Go application, that runs in a container, constrained with 0.5 CPU, running on a host with 2 CPU, will observe 2 available CPU cores. That is the application&amp;rsquo;s calls to &lt;a href="https://pkg.go.dev/runtime#NumCPU">&lt;code>runtime.NumCPU()&lt;/code>&lt;/a> and &lt;a href="https://pkg.go.dev/runtime#GOMAXPROCS">&lt;code>runtime.GOMAXPROCS()&lt;/code>&lt;/a> will get us &amp;ldquo;2&amp;rdquo;. Because the Go runtime is optimized for the maximum utilization of the available compute under the concurrent workload, the goroutines it spawns are distributed to the internal thread pool, created with the assumption of two available CPU cores. This causes the application to throttle after the sum of the time it spend on the CPU cores per CFS period become equals to the quota of the container. With &lt;a href="https://www.kernel.org/doc/html/latest/scheduler/sched-bwc.html#management">the default CFS period&lt;/a> 100ms, the CFS quota of this container 0.5 CPU, and two threads running on different CPU cores, the application is throttled after 25ms every 100ms.&lt;/p></description></item><item><title>Bookmarks (issue 10)</title><link>https://vladimir.varank.in/notes/2022/12/bookmarks-10/</link><pubDate>Sat, 31 Dec 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/12/bookmarks-10/</guid><description>&lt;p>&lt;a href="https://www.youtube.com/watch?v=ZZkMN6cbL-U">The 22 BEST Basslines of 2022&lt;/a> (Patrick Hunter).&lt;/p>
+&lt;p>&lt;a href="https://boyter.org/posts/how-i-built-my-own-index-for-searchcode/">Building a custom code search index in Go for searchcodecom&lt;/a> (&lt;a href="https://twitter.com/boyter">Ben Boyter&lt;/a>).&lt;/p>
+&lt;p>&lt;a href="https://medium.com/directeam/kubernetes-resources-under-the-hood-part-3-6ee7d6015965">Kubernetes resources under the hood&lt;/a>. This year was rich for deep tech articles and talks, that explain how CPU requests and limits work in Kubernetes. This three-part series is no exception.&lt;/p>
+&lt;p>&lt;a href="https://twitter.com/ID_AA_Carmack/status/1603931899810004994">John Carmack on resigning from Meta&lt;/a>. A post that spawned many intresting opinions on the internet: &amp;ldquo;You can&amp;rsquo;t have top people in X (performance, security, whatever) work for you and only half-care about X at the same time. They will move&amp;rdquo;.&lt;/p></description></item><item><title>How "go test" runs tests</title><link>https://vladimir.varank.in/notes/2022/12/how-go-test-runs-tests/</link><pubDate>Thu, 15 Dec 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/12/how-go-test-runs-tests/</guid><description>&lt;p>When I run &lt;code>go test ./foo&lt;/code>, Go toolchain performs several tricks under the hood.&lt;/p>
+&lt;p>First — skipping the intermediate preparation steps, like parsing the command line flags and checking for cached results — the toolchain generates a package &lt;code>main&lt;/code>, which will run all &lt;code>TestXxx&lt;/code> functions for a package under the test. Then it compiles a testing-binary, that includes the generated code, and the code of the package and its _test.go files.&lt;/p>
+&lt;p>The steps above are &lt;em>somewhere&lt;/em> equivalent to running the following command:&lt;/p>
+&lt;pre tabindex="0">&lt;code>&amp;gt; go test -c -o foo.test ./foo
+
+# The resulting &amp;#34;foo.test&amp;#34; is indeed an executable
+&amp;gt; file foo.test
+foo.test: Mach-O 64-bit executable x86_64
+&lt;/code>&lt;/pre>&lt;p>This binary includes a generated function &amp;ldquo;main&amp;rdquo;, that, eventually, calls the packages &lt;code>TestMain(m *testing.M)&lt;/code> (if one exists), and executes all the &lt;code>TestXxx(t *testing.T)&lt;/code> functions, which the toolchain found during the code-generation.&lt;/p>
+&lt;p>For the details of how the generated &amp;ldquo;main&amp;rdquo; looks like, refer to the source code of &lt;a href="https://github.com/golang/go/blob/release-branch.go1.19/src/cmd/go/internal/load/test.go">the internal package &amp;ldquo;load&amp;rdquo;&lt;/a>.&lt;/p>
+&lt;p>Next, the toolchain executes the built binary, setting the current working directory to the path of the original package &lt;code>foo&lt;/code>, which is equivalent to running the following:&lt;/p>
+&lt;pre tabindex="0">&lt;code>&amp;gt; cd ./foo
+&amp;gt; ./../foo.test
+&lt;/code>&lt;/pre>&lt;p>The important (and sometimes not obvious) part is that Go toolchain builds a dedicated binary for every package, under the testing scope. That is, in the example above, the testing binary contains only the code of the package &amp;ldquo;foo&amp;rdquo;, its dependencies, and the code in its _test.go files. If we ran the tests for several packages — &lt;code>go test ./pkg/...&lt;/code> — the toolchain will generate, built and execute individual binaries for every package below &lt;code>pkg/&lt;/code>. This makes the testing of each package fully-isolated.&lt;/p>
+&lt;p>There are lots of other things happening underneath, including code coverage, benchmarking, etc. Have a look through the documentation under &lt;code>go help test&lt;/code> and &lt;code>go help testflag&lt;/code>, for some more details.&lt;/p></description></item><item><title>Bookmarks (issue 9)</title><link>https://vladimir.varank.in/notes/2022/11/bookmarks-9/</link><pubDate>Wed, 30 Nov 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/11/bookmarks-9/</guid><description>&lt;p>&lt;a href="https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/">Kubernetes removals, deprecations, and major changes in 1.26&lt;/a>.&lt;/p>
+&lt;p>&lt;a href="https://medium.com/@kewynakshlley/performance-evaluation-of-the-autoscaling-strategies-vertical-and-horizontal-using-kubernetes-42d9a1663e6b">Performance evaluation of autoscaling strategies in Kubernetes&lt;/a> (&lt;a href="https://twitter.com/kewynakshlley">Kewyn Akshlley&lt;/a>). tl;dr; After comparing the performance of horizontal and vertical autoscaling using synthetic load, the horizontal autoscaling seems more efficient, reacts faster to the load variation, and results in a lower impact on the application&amp;rsquo;s response time.&lt;/p>
+&lt;p>&lt;a href="https://changelog.com/gotime/257">How Pinterest delivers software at scale&lt;/a> (Go Time, podcast). A very refreshing discussion about real-world technical challenges large organizations face.&lt;/p>
+&lt;p>&lt;a href="https://www.se-radio.net/2022/11/episode-539-adam-dymitruk-on-event-modeling/">Adam Dymitruk on Event Modeling&lt;/a> (Software Engineering Radio, podcast). &lt;a href="https://eventmodeling.org/posts/what-is-event-modeling/">Event Modeling: what is it?&lt;/a>&lt;/p></description></item><item><title>Bookmarks (issue 6)</title><link>https://vladimir.varank.in/notes/2022/08/bookmarks-6/</link><pubDate>Wed, 31 Aug 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/08/bookmarks-6/</guid><description>&lt;p>&lt;a href="https://www.youtube.com/watch?v=x9_9iaVszpM">Kubernetes antipatterns: CPU Limits&lt;/a>. Always define CPU requests; never define CPU limits.&lt;/p>
+&lt;p>&lt;a href="https://www.depesz.com/2021/06/20/explaining-the-unexplainable-part-6-buffers/">Explaining the unexplainable: buffers in PostgreSQL&lt;/a>. Shared buffers are those, which&amp;rsquo;re&amp;rsquo; &amp;ldquo;shared&amp;rdquo; between several DB sessions, i.e. data pages, indices, etc; local buffers, are &amp;ldquo;local&amp;rdquo; to a session, i.e. for temporal tables; temp buffers are for intermediate objects, i.e. when the DBMS does hashing and sorting.&lt;/p>
+&lt;p>&lt;a href="https://www.geekabyte.io/2022/08/rust-iterator-pattern-with-iter.html">Rust Iterator pattern with &lt;code>iter()&lt;/code>, &lt;code>into_iter()&lt;/code> and &lt;code>iter_mut()&lt;/code> methods&lt;/a>.&lt;/p>
+&lt;p>&lt;a href="https://github.com/golang/go/discussions/54245">Standard iterator interface in Go&lt;/a> (Ian Lance Taylor via GitHub Discussions).&lt;/p></description></item><item><title>Bookmarks (issue 4)</title><link>https://vladimir.varank.in/notes/2022/06/bookmarks-4/</link><pubDate>Thu, 30 Jun 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/06/bookmarks-4/</guid><description>&lt;p>&lt;a href="https://tip.golang.org/doc/go1.19">Go 1.19beta1&lt;/a>. As usual, lots of good improvements in the language&amp;rsquo;s runtime and the compiler, with one particularly interesting addition being the new &amp;ldquo;knob&amp;rdquo; &lt;code>runtime/debug.SetMemoryLimit&lt;/code>.&lt;/p>
+&lt;p>&lt;a href="https://www.grammarly.com/blog/gender-neutral-language/">How to use gender-neutral language at work and in life&lt;/a> (Grammarly). &amp;ldquo;Luckily, the English language is relatively gender-neutral in many respects&amp;rdquo; [at least, when compared to Russian and German languages].&lt;/p>
+&lt;p>&lt;a href="https://developer.apple.com/videos/play/wwdc2022/10092">Meet passkeys&lt;/a> (Apple) and &lt;a href="https://www.youtube.com/watch?v=mjHIt9lDBgA">Everything you want to know about WebAuthn&lt;/a> (OktaDev). As you can guess, I&amp;rsquo;m very excited with Apple stepping onto the path to a passwordless future, while betting on WebAuthn standard.&lt;/p>
+&lt;p>&lt;a href="https://developer.apple.com/videos/play/wwdc2022/10077/">Replace CAPTCHAs with Private Access Tokens&lt;/a> (Apple),
+&lt;a href="https://www.fastly.com/blog/private-access-tokens-stepping-into-the-privacy-respecting-captcha-less">Private Access Tokens: stepping into the privacy-respecting, CAPTCHA-less future we were promised&lt;/a> (Fastly),
+&lt;a href="https://blog.cloudflare.com/eliminating-captchas-on-iphones-and-macs-using-new-standard/">Private Access Tokens: eliminating CAPTCHAs on iPhones and Macs with open standards&lt;/a> (Cloudflare).&lt;/p></description></item><item><title>A real life use-case for generics in Go: API for client-side pagination</title><link>https://vladimir.varank.in/notes/2022/05/a-real-life-use-case-for-generics-in-go-api-for-client-side-pagination/</link><pubDate>Tue, 17 May 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/05/a-real-life-use-case-for-generics-in-go-api-for-client-side-pagination/</guid><description>&lt;p>Let&amp;rsquo;s say we have a RESTful API for a general ledger, with the endpoints, that return a paginated collection of resources:&lt;/p>
 &lt;ol>
 &lt;li>&lt;code>GET /accounts&lt;/code>, retrieves a list of accounts, filtered and sorted by some query parameters;&lt;/li>
 &lt;li>&lt;code>GET /accounts/:uuid/transactions&lt;/code>, retrieves a list of transactions for account;&lt;/li>
 &lt;li>&lt;code>GET /postings&lt;/code>, retrieves a list of &lt;a href="https://en.wikipedia.org/wiki/Double-entry_bookkeeping">postings&lt;/a> stored in the ledger.&lt;/li>
-&lt;/ol></description></item><item><title>Bookmarks (issue 1)</title><link>https://vladimir.varank.in/notes/2022/03/bookmarks-1/</link><pubDate>Thu, 31 Mar 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/03/bookmarks-1/</guid><description>Generics can make your Go code slower (PlanetScale):
-boxing vs monomorphization vs partial monomorphization (&amp;ldquo;GCShape stenciling with Dictionaries&amp;rdquo;) interface inlining doesn&amp;rsquo;t work well with the 1.18&amp;rsquo;s compiler generics work well for byte sequences (string | []byte) in simple cases, generics can be useful for function callbacks. How Meta enables de-identified authentication at scale. The rational, the use-cases, and a high-level architecture of Meta&amp;rsquo;s Anonymous Credential Service (ACS).
-Hidden dangers of duplicate key violations in PostgreSQL (AWS). INSERT … ON CONFLICT has additional benefits, if compared to relying on PostgreSQL&amp;rsquo;s &amp;ldquo;duplicate key violation&amp;rdquo; error:
-no additional space needed for dead tuples less autovacuum required transaction IDs aren&amp;rsquo;t used for nothing, preventing (postponing) the potential trx-id wraparound. Diving into AWS IAM Roles for (Kubernetes) Service Accounts (IRSA).</description></item><item><title>Go talks I keep coming back to</title><link>https://vladimir.varank.in/notes/2022/02/go-talks-i-keep-coming-back-to/</link><pubDate>Tue, 08 Feb 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/02/go-talks-i-keep-coming-back-to/</guid><description>I have a personal list of &amp;ldquo;top conference talks&amp;rdquo; that I keep referring back to, even after years of working with Go:
-Go profiling from bottom up, Felix Geisendörfer, GoLab 2021. Felix explains what&amp;rsquo;s under the hood of Go&amp;rsquo;s pprof. Evolving the Go Memory Manager&amp;rsquo;s RAM and CPU Efficiency, Michael Knyszek, GopherCon 2020 Death by 3,000 Timers: Streaming Video-on-Demand for Cable TV, Chris Hines, GopherCon 2019. Chris explains the mechanics behind the Go runtime scheduler, following the anomaly cases, they observed, when ran a Go application on a physical machine, with large number of CPU cores. Rethinking Classical Concurrency Patterns (Slides), Bryan C. Mills, GopherCon 2018. Brian demos the implementation of typical concurrency patterns, following the famous Go proverb: &amp;ldquo;Don&amp;rsquo;t communicate by sharing memory; share memory by communicating.&amp;rdquo; GoLab Keynote, Bill Kennedy, GoLab 2018. Bill demoes the ways to reason about the performance of a Go application, with the help of Go runtime tracer. The Scheduler Saga, Kavya Joshi, GopherCon 2018. Kavya shows what stands behind the magic of Go runtime. Restarting Go applications gracefully (in Russian), Сергей Камардин, GopherCon Russia 2018 Advanced Testing with Go, Mitchell Hashimoto, GopherCon 2017 Understanding Channels, Kavya Joshi, GopherCon 2017. Kavya explains how channels work under the hood. Keeping the list here, in public, should help my future self, in a situation where I&amp;rsquo;m stuck with a mind-blocker, and I need to quickly pull out a piece of community wisdom from the backyards of my memory. The list isn&amp;rsquo;t meant to be complete, and I expect to add more links here, moving forward.
-Did I miss any? Share your suggestions with me on Twitter.</description></item><item><title>Error messages in Go</title><link>https://vladimir.varank.in/notes/2021/12/error-messages-in-go/</link><pubDate>Thu, 30 Dec 2021 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2021/12/error-messages-in-go/</guid><description>When Go code propagates an error, the following pattern is very popular:
-fmt.Errorf(&amp;#34;failed to find a parking slot: %w&amp;#34;, err) // Or fmt.Errorf(&amp;#34;could not call mom: %w&amp;#34;, err) These &amp;ldquo;could not&amp;rdquo;, &amp;ldquo;failed to&amp;rdquo;, &amp;ldquo;unable to&amp;rdquo; make sense when my mind is in the local context of the function, method or package. But, in most of the cases I have to deal with, it makes the resulting log message overloaded with informational garbage:
-unable to ask about the cat: failed to call mom: failed to do request: Get https://: context canceled While discussing this issue with a colleague, we came up with the following &amp;ldquo;better&amp;rdquo; strategy:
-only the logger should express its attitude to the facts, using words &amp;ldquo;error&amp;rdquo;, &amp;ldquo;failed&amp;rdquo;, etc the business code must operate only with facts, e.g. &amp;ldquo;call mom&amp;rdquo;. err := CallMom(number) if err != nil { return fmt.Errorf(&amp;#34;call mom (tel %s): %w&amp;#34;, number, err) } This renders as following to the application logs:
-error: ask about cat: call mom (tel 123): make request: Get https://: context canceled For a long stack of errors, this makes the full error message more dense, showing more useful information per line.</description></item><item><title>Little things of Go HTTP handlers</title><link>https://vladimir.varank.in/notes/2021/03/little-things-of-go-http-handlers/</link><pubDate>Wed, 31 Mar 2021 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2021/03/little-things-of-go-http-handlers/</guid><description>Every time I sketch an HTTP API in Go, I wrap the code of request handlers around these small but very convenient bits.
-My handlers are methods or functions, that serve a request and, either write a (positive) response or return an error.
-// HandlerFunc is an HTTP handler function, that handles an HTTP request. // It writes the response to http.ResponseWriter or returns an error. type HandlerFunc func(w http.ResponseWriter, r *http.Request) error // Handler is an adaptor for HandlerFunc, that converts the handler into http.Handler. // It makes sure all errors returned from h are handled in a consistent manner. func Handler(h HandlerFunc) http.Handler { return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { err := h(w, r) if err != nil { handleError(w, r, err) } }) } An error returned from HandlerFunc can be an indicator of a failure in request processing, statusError, or a general &amp;ldquo;something didn&amp;rsquo;t work&amp;rdquo;-error. The later can contain the internal details, that the API must never expose to the user.
-// StatusError wraps an error err and contains the suggestion regarding to // how the error should be communicated to the user. // // code must be a valid HTTP status code; text is the message to reply to user. func StatusError(code int, text string, err error) error { return &amp;amp;statusError{ Code: code, Text: text, Err: err, } } type statusError struct { Code int Text string Err error } func (s statusError) Error() string { return s.Text } func (s statusError) Unwrap() error { return s.Err } handleError is a helper function, which makes sure all errors returned from HandlerFunc are handled and replied to the user consistently. The internal details — the cause of the error — aren&amp;rsquo;t exposed to the user, but the helper can provide a unified logging and metrics, which would be convenient when debugging the error later:
-var ErrNotFound = StatusError(http.StatusNotFound, &amp;#34;Nothing found&amp;#34;, nil) func handleError(w http.ResponseWriter, r *http.Request, err error) { var statusErr *statusError if !errors.As(err, &amp;amp;statusErr) { statusErr = &amp;amp;statusError{Code: http.StatusInternalServerError, Text: &amp;#34;Internal server error&amp;#34;, Err: err} } rid := RequestIDFromContext(r.Context()) resp := errResponse{ RequestID: rid, Error: statusErr.Text, } replyJSON(w, resp, statusErr.Code) // underlying error can be nil, as a special case, when the error is a client-side problem if err := errors.Unwrap(statusErr); err != nil { log.Errorw(&amp;#34;request failed&amp;#34;, &amp;#34;request-id&amp;#34;, rid, &amp;#34;uri&amp;#34;, r.RequestURI, &amp;#34;error&amp;#34;, err) } } replyJSON is a helper function, which writes a JSON string to http.ResponseWriter, setting the proper HTTP headers.
-func replyJSON(w http.ResponseWriter, v interface{}, code int) { w.Header().Set(&amp;#34;Content-Type&amp;#34;, &amp;#34;application/json&amp;#34;) w.WriteHeader(code) err := json.NewEncoder(w).Encode(v) if err != nil { io.WriteString(w, `{&amp;#34;code&amp;#34;:500,&amp;#34;error&amp;#34;:`+strconv.Quote(err.Error())+`}`) } } How does it look in practice?
-Below is an extract from a hypothetical API, with one single route /api/login, that takes an email, and replies with JSON, that contains this account&amp;rsquo;s ID.
-func setupRoutes(mux *http.ServeMux) { authHandler := NewAuthHandler(···) mux.Handle(&amp;#34;/api/login&amp;#34;, Handler(authHandler.HandleLogin)) } type AuthHandler { // internal dependencies } func (h *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) error { ctx := r.Context() req, err := DecodeLoginRequest(r) if err != nil { return fmt.Errorf(&amp;#34;decode login request: %w&amp;#34;, err) } if req.Email == &amp;#34;&amp;#34; { return StatusError(http.StatusBadRequest, &amp;#34;email is required&amp;#34;, nil) } accID, err := h.datastore.GetAccountByEmail(ctx, req.Email) if errors.Is(err, ErrNotExists) { return StatusError(http.StatusForbidden, &amp;#34;account does not exist&amp;#34;, err) } if err != nil { return fmt.Errorf(&amp;#34;get account for %q: %w&amp;#34;, req.Email, err) } resp := struct { ID string `json:&amp;#34;id&amp;#34;` }{ ID: accID, } // ReplyJSON is a wrapper around internal replyJSON, that always responses with http.StatusOK ReplyJSON(w, resp) return nil } Do you have your own little things, that help you to lay out the boilerplate? Discuss this note on Twitter or Reddit.</description></item><item><title>(You don't) Insert unicode NULL character as Postgres jsonb</title><link>https://vladimir.varank.in/notes/2021/01/you-dont-insert-unicode-null-character-as-postgres-jsonb/</link><pubDate>Thu, 14 Jan 2021 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2021/01/you-dont-insert-unicode-null-character-as-postgres-jsonb/</guid><description>With JSON data type it’s easy to treat Postgres as a document database, which doesn’t need strong schema. One can define a table, that has a field of a type jsonb and insert any valid JSON string (a “document”).
-I’ve learned lately, that Postgres’s jsonb prohibits insertion of a valid JSON string if the string contains NULL (U+0000) character. Postgres’s own docs on JSON Types says:
-RFC 7159 permits JSON strings to contain Unicode escape sequences denoted by \uXXXX. In the input function for the json type, Unicode escapes are allowed regardless of the database encoding, and are checked only for syntactic correctness. However, the input function for jsonb is stricter: it disallows Unicode escapes for non-ASCII characters (those above U+007F) unless the database encoding is UTF8. The jsonb type also rejects \u0000 (because that cannot be represented in PostgreSQL&amp;rsquo;s text type), and it insists that any use of Unicode surrogate pairs to designate characters outside the Unicode Basic Multilingual Plane be correct.
-In my case, a Go backend inserts tracing logs to Postgres. A trace consists of multiple “spans”, some of which can contain the reply from an external API. As we found out, sometimes, in the event of a failure, the API replies with an empty GIF &amp;lt;facepalm/&amp;gt;. Our backend converts the response to a string, marshals it to a JSON and later tries to insert the JSON into a Postgres table.
-Consider the following Go code:
-// data is an empty GIF var data = []byte{ 0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x21, 0xf9, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x01, 0x44, 0x00, 0x3b, } func main() { v, _ := json.Marshal(struct { Resp interface{} `json:&amp;#34;resp,omitempty&amp;#34;` }{ Resp: string(data), }) fmt.Printf(&amp;#34;%s\n&amp;#34;, v) // Output (truncated for readability): // {&amp;#34;resp&amp;#34;:&amp;#34;GIF89a\u0001\u0000\u0001\u0000\ufffd\···\u0001D\u0000;&amp;#34;} } Above, json.Marshal produces a perfectly valid JSON. But if I try to insert it into a Postgres table as jsonb, the insert fails with “unsupported Unicode escape sequence”:
-= CREATE TABLE logs (data jsonb); = INSERT INTO logs VALUES (&amp;#39;{&amp;#34;resp&amp;#34;:&amp;#34;GIF89a\u0001\u0000\u0001\u0000\ufffd\···\u0001D\u0000;&amp;#34;}&amp;#39;); ERROR: unsupported Unicode escape sequence LINE 1: insert into logs values (&amp;#39;{&amp;#34;resp&amp;#34;:&amp;#34;GIF89a\u0001\u0000\u0001\... ^ DETAIL: \u0000 cannot be converted to text. CONTEXT: JSON data, line 1: {&amp;#34;resp&amp;#34;:... Because in my code, there were only a couple of places where I didn&amp;rsquo;t control the actual data, that went into a span, the way I’ve chosen to handle that was by introducing a wrapper type, that implements json.Marshaller. The wrapper checks the value is a valid UTF-8 sequence and doesn’t contain NULL character before it marshals the value into a JSON string. If the value is not a valid UTF-8, the marshaller sees it as a binary data and base64-encodes it.
-// RawText handles invalid UTF-8 and NULL-bytes, encoding them as base64-string. // Because we have to make sure the resulting JSON will be compatible with Postgres&amp;#39;s jsonb, // we must use RawText when we don&amp;#39;t control the data, e.g. when log the error from an external API. // Refer to https://www.postgresql.org/docs/10/datatype-json.html type RawText []byte func (v RawText) MarshalEasyJSON(w *Writer) { if utf8.Valid(v) &amp;amp;&amp;amp; !bytes.ContainsRune(v, &amp;#39;\u0000&amp;#39;) { // &amp;#34;valid&amp;#34; text is marshalled as string w.String(string(v)) } else { // &amp;#34;invalid&amp;#34; text is marshalled as binary data w.Raw(json.Marshal([]byte(v))) } } Note, the code above is a marshaller for github.com/mailru/easyjson, which we use in the project.
-Here is how it looks in practice:
-func main() { v, _ := json.Marshal(struct { Resp1 interface{} `json:&amp;#34;resp1,omitempty&amp;#34;` Resp2 interface{} `json:&amp;#34;resp2,omitempty&amp;#34;` }{ Resp1: RawText(bin), // wrap the bin data into RawText Rest2: RawText(&amp;#34;normal string&amp;#34;), // wrap (copy) a string into RawText }) fmt.Printf(&amp;#34;%s\n&amp;#34;, v) // Output: // { // &amp;#34;resp1&amp;#34;:&amp;#34;R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7&amp;#34;, // &amp;#34;resp2&amp;#34;:&amp;#34;normal string&amp;#34; // } }</description></item><item><title>Does profefe prefers "push" over "pull"?</title><link>https://vladimir.varank.in/notes/2020/08/does-profefe-prefers-push-over-pull/</link><pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/08/does-profefe-prefers-push-over-pull/</guid><description>The main component of profefe, a system for continuous profiling, is profefe-collector — a service that receives profiling data, taken from an application and persists the data in collector’s storage (design document describes it in more details). Receiving data from an external source (for example, profefe-agent), indicates that profefe, as an observability system, prefers &amp;ldquo;push&amp;rdquo; model. Why not &amp;ldquo;pulling&amp;rdquo; the profiles directly from the application?
-Both push and pull models have their benefits and drawbacks.
-A collector that pulls profiling data from running applications could simplify integration into existing infrastructure because there would be no need in making changes in the applications that already exposed pprof HTTP endpoint. Making sure that every application integrated and configured profefe-agent would be a challenging job in a large organisation.
-On the other hand, pull model requires pprof servers to be exposed and available for the collector, so it could fetch (pull) profiling data. That can also be challenging in the deployments, where applications are collocated on the bare-metal machines. Every application (application&amp;rsquo;s instance) would have to communicate a unique TCP port for its pprof server.
-To work as a pull-system, the collector must be able to discover the pprof servers, thus it requires a mechanism for service discovery (SD), to be usable at scale. Unfortunately, there isn&amp;rsquo;t a universal SD protocol or a provider, an observability system could be built upon.
-Prometheus, the best example of an open-source system, which uses pull model for data collection, have to support several different SD systems in their code base. At some point they ended up introducing their own general protocol, that expects a &amp;ldquo;middle-man-service&amp;rdquo;, which translates the data from a SD system into a list of Prometheus targets (Update, this comment from u/bbrazil does a better job explaining the state of SD in Prometheus). There is no clear way for an open-source system to be both flexible and don&amp;rsquo;t end up being a pile of &amp;ldquo;plugins&amp;rdquo;, that no one is willing to maintain or break.
-From the start of profefe project, several years ago, I had the idea that translating push into pull would be easier for an end-user. That is if a small deployment already exposes a pprof server, writing an external job that pulls the profiles from the applications, annotates them with meta-data, and pushes the data into the collector, can be as easy as spawning a cronjob in a sidecar. kube-profefe solves that nicely for deployments running in Kubernetes. At some point, I hoped to come up with something similar for Nomad+Consul if the experiments ended successfully.
-Translating pull into push is a similarly possible but because profefe didn’t have to support any SD mechanisms from the start, that simplified the overall code base and allowed us to focus on the collector and the API for profiles quering.
-profefe-collector does uses push model. But one can deploy profefe so it reflected the use cases your organisation has.
-Do you use continuous profiling? Let me know about your experience. Share your thoughts on Twitter or discuss on r/golang.</description></item><item><title>What's in your main-dot-go? (aka Go Project boilerplate)</title><link>https://vladimir.varank.in/notes/2020/07/whats-in-your-main-dot-go/</link><pubDate>Fri, 31 Jul 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/07/whats-in-your-main-dot-go/</guid><description>Sometimes I write small services in Go from scratch. And every time main.go ends up looking almost the same:
-func main() { ctx, cancel := context.WithCancel(context.Background()) defer cancel() sigs := make(chan os.Signal, 2) signal.Notify(sigs, os.Interrupt, syscall.SIGTERM) go func() { &amp;lt;-sigs signal.Stop(sigs) cancel() }() if err := run(ctx, os.Args[1:]); err != nil { log.Fatalln(err) } } type Config struct { HTTPAddr string HTTPShutdownTimeout time.Duration } func run(ctx context.Context, args []string) error { flags := flag.NewFlagSet(&amp;#34;&amp;#34;, flag.ExitOnError) var conf Config flags.StringVar(&amp;amp;conf.HTTPAddr, &amp;#34;http-addr&amp;#34;, &amp;#34;127.0.0.1:10080&amp;#34;, &amp;#34;address to listen on&amp;#34;) flags.DurationVar(&amp;amp;conf.HTTPShutdownTimeout, &amp;#34;http-shutdown-timeout&amp;#34;, 5*time.Second, &amp;#34;server shutdown timeout&amp;#34;) if err := flags.Parse(args); err != nil { return err } // TODO: define the handler, the routing, and wire the dependencies with the main context mux := http.NewServeMux() server := &amp;amp;http.Server{ Addr: conf.HTTPAddr, Handler: mux, } errs := make(chan error, 1) go func() { log.Printf(&amp;#34;starting: addr %s&amp;#34;, server.Addr) errs &amp;lt;- server.ListenAndServe() }() select { case &amp;lt;-ctx.Done(): log.Println(&amp;#34;exiting...&amp;#34;) case err := &amp;lt;-errs: return err } // create new context because top-most one is already canceled ctx, cancel := context.WithTimeout(context.Background(), conf.HTTPShutdownTimeout) defer cancel() return server.Shutdown(ctx) } Of course, not every service requires an HTTP server, but the general idea stands.
-When Go will introduce signal.NotifyContext(), the signals handling in main() function will be much smaller (we&amp;rsquo;re at go1.15rc1 as I&amp;rsquo;m writing that and the change hasn&amp;rsquo;t landed into the release yet).
-I love how transparent is the flow here and how everything is scoped inside run() function. This structure forces you to eliminate global state, making unit or integration testing almost trivial — at least, in theory ;)
-It might feel like too much of boilerplate code for a &amp;ldquo;small&amp;rdquo; service. In practice, though, I don&amp;rsquo;t recall any time this caused any real troubles to me. The beauty of Go is in explicitness.</description></item><item><title>Retrieve Location of macOS Device from Go</title><link>https://vladimir.varank.in/notes/2020/03/go-osx-core-location/</link><pubDate>Mon, 30 Mar 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/03/go-osx-core-location/</guid><description>&lt;p>Participating in self-isolation is more fun when you have toys to play. As a fun weekend project, I wanted to look at how one accesses macOS Location Services and get the geographic location of the device from Go.&lt;/p>
-&lt;p>To obtain the geographic location of a device on macOS, we use &lt;a href="https://developer.apple.com/documentation/corelocation?language=objc">Apple’s Core Location&lt;/a> framework. The framework is part of the OS, but it requires writting Objective-C (&lt;em>or Swift&lt;/em>). Thanks to Go&amp;rsquo;s cgo and because Objective-C is from the family of C languages, we can write a bridge between Objective-C and Go.&lt;/p></description></item><item><title>[]byte to string conversion</title><link>https://vladimir.varank.in/notes/2019/10/go-bytes-string-conversion/</link><pubDate>Tue, 08 Oct 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/10/go-bytes-string-conversion/</guid><description>Go has an old wiki page, titled &amp;ldquo;Compiler And Runtime Optimizations&amp;rdquo;.
-The part I like most there is different cases where compiler doesn&amp;rsquo;t allocate memory for string to []byte conversions:
-For a map m of type map[string]T and []byte b, m[string(b)] doesn&amp;rsquo;t allocate (the temporary string copy of the byte slice isn&amp;rsquo;t made)
-Turned out, since this wiki page was written, more similar optimisations were added to the compiler.
-As it&amp;rsquo;s in Go 1.12+ the following cases are also listed in runtime/string.go:
-Strings comcatenation For the case &amp;quot;&amp;lt;&amp;quot; + string(b) + &amp;quot;&amp;gt;&amp;quot;, where b is []byte no extra copying of b is needed.
-Comparison if string(b) == &amp;#34;foo&amp;#34; { ··· } In the code above, b []byte also won&amp;rsquo;t be copied.
-There are still cases where compiler can&amp;rsquo;t optimise the code for us. In some of those cases it&amp;rsquo;s fine to do string to bytes conversion using a so called &amp;ldquo;unsafe trick&amp;rdquo; (accessing string&amp;rsquo;s underling data directly, with out copying the data from string to bytes and vice versa). One can find several ways of performing the trick, but none of them seems &amp;ldquo;the one that must be used&amp;rdquo;.
-After years of episodic discussions, a collegue of mine assembled the list of different conserns and about the proper way of doing it (see &amp;ldquo;unsafe conversion between string &amp;lt;-&amp;gt; []byte&amp;rdquo; topic on golang-nuts forum). Thanks to replies from Go team, our most valid way of doing it is following:
-// Refer to github.com/fmstephe/unsafeutil type stringHeader struct { data unsafe.Pointer stringLen int } type sliceHeader struct { data unsafe.Pointer sliceLen int sliceCap int } func StringToBytes(s string) (b []byte) { stringHeader := (*stringHeader)(unsafe.Pointer(&amp;amp;s)) sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;amp;b)) sliceHeader.data = stringHeader.data sliceHeader.sliceLen = len(s) sliceHeader.sliceCap = len(s) return b } func BytesToString(b []byte) (s string) { sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;amp;b)) stringHeader := (*stringHeader)(unsafe.Pointer(&amp;amp;s)) stringHeader.data = sliceHeader.data stringHeader.stringLen = len(b) return s }</description></item><item><title>Github Actions and GOPATH</title><link>https://vladimir.varank.in/notes/2019/09/github-actions-and-gopath/</link><pubDate>Thu, 19 Sep 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/09/github-actions-and-gopath/</guid><description>The other day I received my beta access to GitHub Actions. To try them out I picked an existing pet project and created a workflow using a Go project template provided by GitHub. As it&amp;rsquo;s in September 2019, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.
-My project is a classic Go service ;) meaning: it uses vendoring and doesn&amp;rsquo;t use Go modules. So no need for &amp;ldquo;get dependencies&amp;rdquo; step. And it requires to be inside the GOPATH. With that, the provided workflow needed some adjustment.
-After some trials and errors, I&amp;rsquo;ve managed to make checkout step to clone the repo into the correct destination inside the GOPATH. Here is the final workflow:
-name: Run Go test on: [pull_request] jobs: test: strategy: matrix: go-version: [1.12.9] runs-on: ubuntu-latest steps: - uses: actions/setup-go@v1 with: go-version: ${{ matrix.go-version }} - uses: actions/checkout@v1 with: path: ./src/github.com/${{ github.repository }} fetch-depth: 5 - run: make test env: GOPATH: ${{ runner.workspace }} Note, how actions/checkout@v1 above uses custom path input parameter. I set the path to ./src/github.com/${{ github.repository }}, so the project is checked out to src directory in the runners&amp;rsquo;s workspace, which I later pass as the value of GOPATH to the &amp;ldquo;make test&amp;rdquo; step. The leading dot in ./src seems very important — I&amp;rsquo;ve spent the majority of the time trying to figure out that part — refer to this issue.
-See the workflow in action.
-To learn more about those ${{ ··· }} &amp;ldquo;macroses&amp;rdquo; I suggest looking at the Actions&amp;rsquo; &amp;ldquo;Contexts and expression syntax&amp;rdquo; documentation.</description></item><item><title>Go's net/http.Headers</title><link>https://vladimir.varank.in/notes/2019/09/go-http-headers/</link><pubDate>Wed, 04 Sep 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/09/go-http-headers/</guid><description>One probably knows that net/http.Headers is no more than map[string][]string with extra specific methods. A usual way to initialize and populate such data-structure from an external representation is something like that:
-type Header map[string][]string func (h Header) Add(key, val string) { if val == &amp;#34;&amp;#34; { return } h[key] = append(h[key], val) } func main() { h := make(Header) h.Add(&amp;#34;Host&amp;#34;, &amp;#34;example.com&amp;#34;) h.Add(&amp;#34;Via&amp;#34;, &amp;#34;a.example.com&amp;#34;) h.Add(&amp;#34;Via&amp;#34;, &amp;#34;b.example.com&amp;#34;) } From the code above, one can notice that we allocated a new slice of strings for every unique key that we added to headers. For things like HTTP headers, that&amp;rsquo;re automatically parsed for every incoming request, this bunch of tiny allocations is something we&amp;rsquo;d like to avoid.
-I was curious to know if Go&amp;rsquo;s standard library cares about that.
-Looking at the implementation of net/textproto.Reader.ReadMIMEHeader(), which is used in the standard HTTP server, or Go 1.13’s new net/http.Header.Clone(), it turned out they solve the problem quite elegantly.
-We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.
-Knowing that, we can refactor the initial Header.Add as the following:
-type Header map[string][]string func (h Header) add(vv []string, key, val string) []string { if val == &amp;#34;&amp;#34; { ··· } // fast path for KV pair of a single value if h[key] == nil { vv = append(vv, value) h[key] = vv[:1:1] return vv[1:] } // slow path, when KV pair has two or more values h[key] = append(h[key], val) return vv } func main() { h := make(Header) // net/textprotocol pre-counts total number of request&amp;#39;s headers // to allocate the slice of known capacity vv := make([]string, 0) vv = h.add(vv, &amp;#34;Host&amp;#34;, &amp;#34;example.com&amp;#34;) vv = h.add(vv, &amp;#34;Via&amp;#34;, &amp;#34;a.example.com&amp;#34;) } Note that we use vv[:1:1] to create a sub-slice of a fixed capacity (length 1, capacity 1).
-If there is a KV-pair that has several values, e.g. &amp;ldquo;Via&amp;rdquo; header, Add will allocate a separate slice for that key, doubling its capacity.</description></item></channel></rss>
+&lt;/ol></description></item><item><title>Bookmarks (issue 1)</title><link>https://vladimir.varank.in/notes/2022/03/bookmarks-1/</link><pubDate>Thu, 31 Mar 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/03/bookmarks-1/</guid><description>&lt;p>&lt;a href="https://planetscale.com/blog/generics-can-make-your-go-code-slower">Generics can make your Go code slower&lt;/a> (PlanetScale):&lt;/p>
+&lt;ol>
+&lt;li>boxing vs monomorphization vs partial monomorphization (&amp;ldquo;GCShape stenciling with Dictionaries&amp;rdquo;)&lt;/li>
+&lt;li>interface inlining doesn&amp;rsquo;t work well with the 1.18&amp;rsquo;s compiler&lt;/li>
+&lt;li>generics work well for byte sequences (&lt;code>string | []byte&lt;/code>)&lt;/li>
+&lt;li>in simple cases, generics can be useful for function callbacks.&lt;/li>
+&lt;/ol>
+&lt;p>&lt;a href="https://engineering.fb.com/2022/03/30/security/de-identified-authentication-at-scale/">How Meta enables de-identified authentication at scale&lt;/a>. The rational, the use-cases, and a high-level architecture of Meta&amp;rsquo;s Anonymous Credential Service (ACS).&lt;/p>
+&lt;p>&lt;a href="https://aws.amazon.com/blogs/database/hidden-dangers-of-duplicate-key-violations-in-postgresql-and-how-to-avoid-them/">Hidden dangers of duplicate key violations in PostgreSQL&lt;/a> (AWS). &lt;code>INSERT … ON CONFLICT&lt;/code> has additional benefits, if compared to relying on PostgreSQL&amp;rsquo;s &amp;ldquo;duplicate key violation&amp;rdquo; error:&lt;/p>
+&lt;ol>
+&lt;li>no additional space needed for dead tuples&lt;/li>
+&lt;li>less autovacuum required&lt;/li>
+&lt;li>transaction IDs aren&amp;rsquo;t used for nothing, preventing (postponing) the potential trx-id wraparound.&lt;/li>
+&lt;/ol>
+&lt;p>&lt;a href="https://aws.amazon.com/blogs/containers/diving-into-iam-roles-for-service-accounts/">Diving into AWS IAM Roles for (Kubernetes) Service Accounts (IRSA)&lt;/a>.&lt;/p></description></item><item><title>Go talks I keep coming back to</title><link>https://vladimir.varank.in/notes/2022/02/go-talks-i-keep-coming-back-to/</link><pubDate>Tue, 08 Feb 2022 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2022/02/go-talks-i-keep-coming-back-to/</guid><description>&lt;p>I have a personal list of &amp;ldquo;top conference talks&amp;rdquo; that I keep referring back to, even after years of working with Go:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=3RkRpS2UV80">Go profiling from bottom up&lt;/a>&lt;/strong>, &lt;a href="https://github.com/felixge">Felix Geisendörfer&lt;/a>, GoLab 2021. Felix explains what&amp;rsquo;s under the hood of Go&amp;rsquo;s pprof.&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=S_1YfTfuWmo">Evolving the Go Memory Manager&amp;rsquo;s RAM and CPU Efficiency&lt;/a>&lt;/strong>, Michael Knyszek, GopherCon 2020&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=h0s8CWpIKdg">Death by 3,000 Timers: Streaming Video-on-Demand for Cable TV&lt;/a>&lt;/strong>, &lt;a href="https://twitter.com/chris_csguy">Chris Hines&lt;/a>, GopherCon 2019. Chris explains the mechanics behind the Go runtime scheduler, following the anomaly cases, they observed, when ran a Go application on a physical machine, with large number of CPU cores.&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=5zXAHh5tJqQ">Rethinking Classical Concurrency Patterns&lt;/a>&lt;/strong> (&lt;a href="https://drive.google.com/file/d/1nPdvhB0PutEJzdCq5ms6UI58dp50fcAN/view">Slides&lt;/a>), &lt;a href="https://github.com/bcmills">Bryan C. Mills&lt;/a>, GopherCon 2018. Brian demos the implementation of typical concurrency patterns, following the famous Go proverb: &amp;ldquo;Don&amp;rsquo;t communicate by sharing memory; share memory by communicating.&amp;rdquo;&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=ZfdF8gPinlU">GoLab Keynote&lt;/a>&lt;/strong>, &lt;a href="https://twitter.com/goinggodotnet">Bill Kennedy&lt;/a>, GoLab 2018. Bill demoes the ways to reason about the performance of a Go application, with the help of Go runtime tracer.&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=YHRO5WQGh0k">The Scheduler Saga&lt;/a>&lt;/strong>, Kavya Joshi, GopherCon 2018. Kavya shows what stands behind the magic of Go runtime.&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=1v3RilVOTKM">Restarting Go applications gracefully&lt;/a>&lt;/strong> (&lt;em>in Russian&lt;/em>), &lt;a href="https://sergey.kamardin.org/">Сергей Камардин&lt;/a>, GopherCon Russia 2018&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=8hQG7QlcLBk">Advanced Testing with Go&lt;/a>&lt;/strong>, &lt;a href="https://twitter.com/mitchellh">Mitchell Hashimoto&lt;/a>, GopherCon 2017&lt;/li>
+&lt;li>&lt;strong>&lt;a href="https://www.youtube.com/watch?v=KBZlN0izeiY">Understanding Channels&lt;/a>&lt;/strong>, Kavya Joshi, GopherCon 2017. Kavya explains how channels work under the hood.&lt;/li>
+&lt;/ul>
+&lt;p>Keeping the list here, in public, should help my future self, in a situation where I&amp;rsquo;m stuck with a &lt;em>mind-blocker&lt;/em>, and I need to quickly pull out a piece of community wisdom from the backyards of my memory. The list isn&amp;rsquo;t meant to be complete, and I expect to add more links here, moving forward.&lt;/p>
+&lt;p>&lt;em>Did I miss any? Share your suggestions with me on &lt;a href="https://twitter.com/tvii/status/1491136758792155139">Twitter&lt;/a>.&lt;/em>&lt;/p></description></item><item><title>Error messages in Go</title><link>https://vladimir.varank.in/notes/2021/12/error-messages-in-go/</link><pubDate>Thu, 30 Dec 2021 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2021/12/error-messages-in-go/</guid><description>&lt;p>When Go code propagates an error, the following pattern is very popular:&lt;/p>
+&lt;pre tabindex="0">&lt;code>fmt.Errorf(&amp;#34;failed to find a parking slot: %w&amp;#34;, err)
+// Or
+fmt.Errorf(&amp;#34;could not call mom: %w&amp;#34;, err)
+&lt;/code>&lt;/pre>&lt;p>These &amp;ldquo;could not&amp;rdquo;, &amp;ldquo;failed to&amp;rdquo;, &amp;ldquo;unable to&amp;rdquo; make sense when my mind is in the local context of the function, method or package. But, in most of the cases I have to deal with, it makes the resulting log message overloaded with informational garbage:&lt;/p>
+&lt;pre tabindex="0">&lt;code>unable to ask about the cat: failed to call mom: failed to do request: Get https://: context canceled
+&lt;/code>&lt;/pre>&lt;p>While discussing this issue with a colleague, we came up with the following &amp;ldquo;better&amp;rdquo; strategy:&lt;/p>
+&lt;ol>
+&lt;li>only the logger should express its attitude to the facts, using words &amp;ldquo;error&amp;rdquo;, &amp;ldquo;failed&amp;rdquo;, etc&lt;/li>
+&lt;li>the business code must operate only with facts, e.g. &amp;ldquo;call mom&amp;rdquo;.&lt;/li>
+&lt;/ol>
+&lt;pre tabindex="0">&lt;code>err := CallMom(number)
+if err != nil {
+ return fmt.Errorf(&amp;#34;call mom (tel %s): %w&amp;#34;, number, err)
+}
+&lt;/code>&lt;/pre>&lt;p>This renders as following to the application logs:&lt;/p>
+&lt;pre tabindex="0">&lt;code>error: ask about cat: call mom (tel 123): make request: Get https://: context canceled
+&lt;/code>&lt;/pre>&lt;p>For a long stack of errors, this makes the full error message more dense, showing more useful information per line.&lt;/p></description></item><item><title>Little things of Go HTTP handlers</title><link>https://vladimir.varank.in/notes/2021/03/little-things-of-go-http-handlers/</link><pubDate>Wed, 31 Mar 2021 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2021/03/little-things-of-go-http-handlers/</guid><description>&lt;p>Every time I sketch an HTTP API in Go, I wrap the code of request handlers around these small but very convenient bits.&lt;/p>
+&lt;p>My handlers are methods or functions, that serve a request and, either write a (&lt;em>positive&lt;/em>) response or return an error.&lt;/p>
+&lt;pre tabindex="0">&lt;code>// HandlerFunc is an HTTP handler function, that handles an HTTP request.
+// It writes the response to http.ResponseWriter or returns an error.
+type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
+
+// Handler is an adaptor for HandlerFunc, that converts the handler into http.Handler.
+// It makes sure all errors returned from h are handled in a consistent manner.
+func Handler(h HandlerFunc) http.Handler {
+ return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+ err := h(w, r)
+ if err != nil {
+ handleError(w, r, err)
+ }
+ })
+}
+&lt;/code>&lt;/pre>&lt;p>An error returned from &lt;code>HandlerFunc&lt;/code> can be an indicator of a failure in request processing, &lt;code>statusError&lt;/code>, or a general &amp;ldquo;something didn&amp;rsquo;t work&amp;rdquo;-error. The later can contain the internal details, that the API must never expose to the user.&lt;/p>
+&lt;pre tabindex="0">&lt;code>// StatusError wraps an error err and contains the suggestion regarding to
+// how the error should be communicated to the user.
+//
+// code must be a valid HTTP status code; text is the message to reply to user.
+func StatusError(code int, text string, err error) error {
+ return &amp;amp;statusError{
+ Code: code,
+ Text: text,
+ Err: err,
+ }
+}
+
+type statusError struct {
+ Code int
+ Text string
+ Err error
+}
+
+func (s statusError) Error() string {
+ return s.Text
+}
+
+func (s statusError) Unwrap() error {
+ return s.Err
+}
+&lt;/code>&lt;/pre>&lt;p>&lt;code>handleError&lt;/code> is a helper function, which makes sure all errors returned from &lt;code>HandlerFunc&lt;/code> are handled and replied to the user consistently. The internal details — the cause of the error — aren&amp;rsquo;t exposed to the user, but the helper can provide a unified logging and metrics, which would be convenient when debugging the error later:&lt;/p>
+&lt;pre tabindex="0">&lt;code>var ErrNotFound = StatusError(http.StatusNotFound, &amp;#34;Nothing found&amp;#34;, nil)
+
+func handleError(w http.ResponseWriter, r *http.Request, err error) {
+ var statusErr *statusError
+ if !errors.As(err, &amp;amp;statusErr) {
+ statusErr = &amp;amp;statusError{Code: http.StatusInternalServerError, Text: &amp;#34;Internal server error&amp;#34;, Err: err}
+ }
+
+ rid := RequestIDFromContext(r.Context())
+ resp := errResponse{
+ RequestID: rid,
+ Error: statusErr.Text,
+ }
+ replyJSON(w, resp, statusErr.Code)
+
+ // underlying error can be nil, as a special case, when the error is a client-side problem
+ if err := errors.Unwrap(statusErr); err != nil {
+ log.Errorw(&amp;#34;request failed&amp;#34;, &amp;#34;request-id&amp;#34;, rid, &amp;#34;uri&amp;#34;, r.RequestURI, &amp;#34;error&amp;#34;, err)
+ }
+}
+&lt;/code>&lt;/pre>&lt;p>&lt;code>replyJSON&lt;/code> is a helper function, which writes a JSON string to &lt;code>http.ResponseWriter&lt;/code>, setting the proper HTTP headers.&lt;/p>
+&lt;pre tabindex="0">&lt;code>func replyJSON(w http.ResponseWriter, v interface{}, code int) {
+ w.Header().Set(&amp;#34;Content-Type&amp;#34;, &amp;#34;application/json&amp;#34;)
+ w.WriteHeader(code)
+ err := json.NewEncoder(w).Encode(v)
+ if err != nil {
+ io.WriteString(w, `{&amp;#34;code&amp;#34;:500,&amp;#34;error&amp;#34;:`+strconv.Quote(err.Error())+`}`)
+ }
+}
+&lt;/code>&lt;/pre>&lt;p>How does it look in practice?&lt;/p>
+&lt;p>Below is an extract from a hypothetical API, with one single route &lt;code>/api/login&lt;/code>, that takes an email, and replies with JSON, that contains this account&amp;rsquo;s ID.&lt;/p>
+&lt;pre tabindex="0">&lt;code>func setupRoutes(mux *http.ServeMux) {
+ authHandler := NewAuthHandler(···)
+ mux.Handle(&amp;#34;/api/login&amp;#34;, Handler(authHandler.HandleLogin))
+}
+
+type AuthHandler {
+ // internal dependencies
+}
+
+func (h *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) error {
+ ctx := r.Context()
+
+ req, err := DecodeLoginRequest(r)
+ if err != nil {
+ return fmt.Errorf(&amp;#34;decode login request: %w&amp;#34;, err)
+ }
+ if req.Email == &amp;#34;&amp;#34; {
+ return StatusError(http.StatusBadRequest, &amp;#34;email is required&amp;#34;, nil)
+ }
+
+ accID, err := h.datastore.GetAccountByEmail(ctx, req.Email)
+ if errors.Is(err, ErrNotExists) {
+ return StatusError(http.StatusForbidden, &amp;#34;account does not exist&amp;#34;, err)
+ }
+ if err != nil {
+ return fmt.Errorf(&amp;#34;get account for %q: %w&amp;#34;, req.Email, err)
+ }
+
+ resp := struct {
+ ID string `json:&amp;#34;id&amp;#34;`
+ }{
+ ID: accID,
+ }
+ // ReplyJSON is a wrapper around internal replyJSON, that always responses with http.StatusOK
+ ReplyJSON(w, resp)
+
+ return nil
+}
+&lt;/code>&lt;/pre>&lt;p>&lt;em>Do you have your own little things, that help you to lay out the boilerplate? Discuss this note on &lt;a href="https://twitter.com/tvii/status/1377358308193935361">Twitter&lt;/a> or &lt;a href="https://www.reddit.com/r/golang/comments/mhf04c/little_things_of_go_http_handlers/">Reddit&lt;/a>.&lt;/em>&lt;/p></description></item><item><title>(You don't) Insert unicode NULL character as Postgres jsonb</title><link>https://vladimir.varank.in/notes/2021/01/you-dont-insert-unicode-null-character-as-postgres-jsonb/</link><pubDate>Thu, 14 Jan 2021 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2021/01/you-dont-insert-unicode-null-character-as-postgres-jsonb/</guid><description>&lt;p>With JSON data type it’s easy to treat Postgres as a document database, which doesn’t need strong schema. One can define a table, that has a field of a type &lt;code>jsonb&lt;/code> and insert any valid JSON string (a “document”).&lt;/p>
+&lt;p>I’ve learned lately, that Postgres’s &lt;code>jsonb&lt;/code> prohibits insertion of a valid JSON string if the string contains NULL (&lt;code>U+0000&lt;/code>) character. Postgres’s own &lt;a href="https://www.postgresql.org/docs/10/datatype-json.html">docs on JSON Types&lt;/a> says:&lt;/p>
+&lt;blockquote>
+&lt;p>RFC 7159 permits JSON strings to contain Unicode escape sequences denoted by \uXXXX. In the input function for the json type, Unicode escapes are allowed regardless of the database encoding, and are checked only for syntactic correctness. However, the input function for &lt;code>jsonb&lt;/code> is stricter: it disallows Unicode escapes for non-ASCII characters (those above U+007F) unless the database encoding is UTF8. The &lt;code>jsonb&lt;/code> type also rejects \u0000 (because that cannot be represented in PostgreSQL&amp;rsquo;s text type), and it insists that any use of Unicode surrogate pairs to designate characters outside the Unicode Basic Multilingual Plane be correct.&lt;/p>
+&lt;/blockquote>
+&lt;p>In my case, a Go backend inserts tracing logs to Postgres. A trace consists of multiple “spans”, some of which can contain the reply from an external API. As we found out, sometimes, in the event of a failure, the API replies with an empty GIF &amp;lt;&lt;em>facepalm/&lt;/em>&amp;gt;. Our backend converts the response to a string, marshals it to a JSON and later tries to insert the JSON into a Postgres table.&lt;/p>
+&lt;p>Consider the following Go code:&lt;/p>
+&lt;pre tabindex="0">&lt;code>// data is an empty GIF
+var data = []byte{
+ 0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00,
+ 0x01, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 0xff, 0xff, 0xff, 0x21, 0xf9, 0x04, 0x01, 0x00,
+ 0x00, 0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00,
+ 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x01, 0x44,
+ 0x00, 0x3b,
+}
+
+func main() {
+ v, _ := json.Marshal(struct {
+ Resp interface{} `json:&amp;#34;resp,omitempty&amp;#34;`
+ }{
+ Resp: string(data),
+ })
+ fmt.Printf(&amp;#34;%s\n&amp;#34;, v)
+ // Output (truncated for readability):
+ // {&amp;#34;resp&amp;#34;:&amp;#34;GIF89a\u0001\u0000\u0001\u0000\ufffd\···\u0001D\u0000;&amp;#34;}
+}
+&lt;/code>&lt;/pre>&lt;p>Above, &lt;code>json.Marshal&lt;/code> produces a perfectly valid JSON. But if I try to insert it into a Postgres table as &lt;code>jsonb&lt;/code>, the insert fails with “unsupported Unicode escape sequence”:&lt;/p>
+&lt;pre tabindex="0">&lt;code>= CREATE TABLE logs (data jsonb);
+= INSERT INTO logs VALUES (&amp;#39;{&amp;#34;resp&amp;#34;:&amp;#34;GIF89a\u0001\u0000\u0001\u0000\ufffd\···\u0001D\u0000;&amp;#34;}&amp;#39;);
+
+ERROR: unsupported Unicode escape sequence
+LINE 1: insert into logs values (&amp;#39;{&amp;#34;resp&amp;#34;:&amp;#34;GIF89a\u0001\u0000\u0001\...
+ ^
+DETAIL: \u0000 cannot be converted to text.
+CONTEXT: JSON data, line 1: {&amp;#34;resp&amp;#34;:...
+&lt;/code>&lt;/pre>&lt;p>Because in my code, there were only a couple of places where I didn&amp;rsquo;t control the actual data, that went into a span, the way I’ve chosen to handle that was by introducing a wrapper type, that implements &lt;code>json.Marshaller&lt;/code>. The wrapper checks the value is a valid UTF-8 sequence and doesn’t contain &lt;code>NULL&lt;/code> character before it marshals the value into a JSON string. If the value is not a valid UTF-8, the marshaller sees it as a binary data and base64-encodes it.&lt;/p>
+&lt;pre tabindex="0">&lt;code>// RawText handles invalid UTF-8 and NULL-bytes, encoding them as base64-string.
+// Because we have to make sure the resulting JSON will be compatible with Postgres&amp;#39;s jsonb,
+// we must use RawText when we don&amp;#39;t control the data, e.g. when log the error from an external API.
+// Refer to https://www.postgresql.org/docs/10/datatype-json.html
+type RawText []byte
+
+func (v RawText) MarshalEasyJSON(w *Writer) {
+ if utf8.Valid(v) &amp;amp;&amp;amp; !bytes.ContainsRune(v, &amp;#39;\u0000&amp;#39;) {
+ // &amp;#34;valid&amp;#34; text is marshalled as string
+ w.String(string(v))
+ } else {
+ // &amp;#34;invalid&amp;#34; text is marshalled as binary data
+ w.Raw(json.Marshal([]byte(v)))
+ }
+}
+&lt;/code>&lt;/pre>&lt;p>Note, the code above is a marshaller for &lt;a href="https://github.com/mailru/easyjson">github.com/mailru/easyjson&lt;/a>, which we use in the project.&lt;/p>
+&lt;p>Here is how it looks in practice:&lt;/p>
+&lt;pre tabindex="0">&lt;code>func main() {
+ v, _ := json.Marshal(struct {
+ Resp1 interface{} `json:&amp;#34;resp1,omitempty&amp;#34;`
+ Resp2 interface{} `json:&amp;#34;resp2,omitempty&amp;#34;`
+ }{
+ Resp1: RawText(bin), // wrap the bin data into RawText
+ Rest2: RawText(&amp;#34;normal string&amp;#34;), // wrap (copy) a string into RawText
+ })
+ fmt.Printf(&amp;#34;%s\n&amp;#34;, v)
+ // Output:
+ // {
+ // &amp;#34;resp1&amp;#34;:&amp;#34;R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7&amp;#34;,
+ // &amp;#34;resp2&amp;#34;:&amp;#34;normal string&amp;#34;
+ // }
+}
+&lt;/code>&lt;/pre></description></item><item><title>Does profefe prefers "push" over "pull"?</title><link>https://vladimir.varank.in/notes/2020/08/does-profefe-prefers-push-over-pull/</link><pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/08/does-profefe-prefers-push-over-pull/</guid><description>&lt;p>The main component of &lt;a href="https://github.com/profefe/profefe">profefe, a system for continuous profiling&lt;/a>, is &lt;em>profefe-collector&lt;/em> — a service that receives profiling data, taken from an application and persists the data in collector’s storage (&lt;a href="https://github.com/profefe/profefe/blob/master/DESIGN.md">design document&lt;/a> describes it in more details). Receiving data from an external source (for example, &lt;em>profefe-agent&lt;/em>), indicates that profefe, as an observability system, prefers &amp;ldquo;push&amp;rdquo; model. Why not &amp;ldquo;pulling&amp;rdquo; the profiles directly from the application?&lt;/p>
+&lt;p>Both push and pull models have their benefits and drawbacks.&lt;/p>
+&lt;p>A collector that pulls profiling data from running applications could simplify integration into existing infrastructure because there would be no need in making changes in the applications that already exposed pprof HTTP endpoint. Making sure that every application integrated and configured profefe-agent would be a challenging job in a large organisation.&lt;/p>
+&lt;p>On the other hand, pull model requires pprof servers to be exposed and available for the collector, so it could fetch (&lt;em>pull&lt;/em>) profiling data. That can also be challenging in the deployments, where applications are collocated on the bare-metal machines. Every application (application&amp;rsquo;s instance) would have to communicate a unique TCP port for its pprof server.&lt;/p>
+&lt;p>To work as a pull-system, the collector must be able to discover the pprof servers, thus it requires a mechanism for service discovery (SD), to be usable at scale. Unfortunately, there isn&amp;rsquo;t a universal SD protocol or a provider, an observability system could be built upon.&lt;/p>
+&lt;p>Prometheus, the best example of an open-source system, which uses pull model for data collection, have to support several different SD systems in their code base. At some point they &lt;a href="https://prometheus.io/blog/2018/07/05/implementing-custom-sd/">ended up introducing their own general protocol&lt;/a>, that expects a &amp;ldquo;middle-man-service&amp;rdquo;, which translates the data from a SD system into a list of Prometheus targets (&lt;em>Update, &lt;a href="https://www.reddit.com/r/golang/comments/idwi4d/does_profefe_a_system_for_continuous_profiling/g2by237/?utm_source=reddit&amp;amp;utm_medium=web2x&amp;amp;context=3">this comment from u/bbrazil&lt;/a> does a better job explaining the state of SD in Prometheus&lt;/em>). There is no clear way for an open-source system to be both flexible and don&amp;rsquo;t end up being a pile of &amp;ldquo;plugins&amp;rdquo;, that no one is willing to maintain or break.&lt;/p>
+&lt;p>From the start of profefe project, several years ago, I had the idea that translating push into pull would be easier for an end-user. That is if a small deployment already exposes a pprof server, writing an external job that pulls the profiles from the applications, annotates them with meta-data, and pushes the data into the collector, can be as easy as spawning a cronjob in a sidecar. &lt;a href="https://github.com/profefe/kube-profefe">kube-profefe&lt;/a> solves that nicely for deployments running in Kubernetes. At some point, I hoped to come up with something similar for Nomad+Consul if the experiments ended successfully.&lt;/p>
+&lt;p>Translating pull into push is a similarly possible but because profefe didn’t have to support any SD mechanisms from the start, that simplified the overall code base and allowed us to focus on the collector and the &lt;a href="https://github.com/profefe/profefe#http-api">API for profiles quering&lt;/a>.&lt;/p>
+&lt;p>profefe-collector does uses push model. But one can deploy profefe so it reflected the use cases your organisation has.&lt;/p>
+&lt;p>Do you use continuous profiling? Let me know about your experience. Share your thoughts &lt;a href="https://twitter.com/tvii/status/1296796503781122049">on Twitter&lt;/a> or &lt;a href="https://www.reddit.com/r/golang/comments/idwi4d/does_profefe_a_system_for_continuous_profiling/">discuss on r/golang&lt;/a>.&lt;/p></description></item><item><title>What's in your main-dot-go? (aka Go Project boilerplate)</title><link>https://vladimir.varank.in/notes/2020/07/whats-in-your-main-dot-go/</link><pubDate>Fri, 31 Jul 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/07/whats-in-your-main-dot-go/</guid><description>&lt;p>Sometimes I write small services in Go from scratch. And every time &lt;code>main.go&lt;/code> ends up looking almost the same:&lt;/p>
+&lt;pre tabindex="0">&lt;code>func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sigs := make(chan os.Signal, 2)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		&amp;lt;-sigs
+		signal.Stop(sigs)
+		cancel()
+	}()
+
+	if err := run(ctx, os.Args[1:]); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+type Config struct {
+	HTTPAddr string
+	HTTPShutdownTimeout time.Duration
+}
+
+func run(ctx context.Context, args []string) error {
+	flags := flag.NewFlagSet(&amp;#34;&amp;#34;, flag.ExitOnError)
+
+	var conf Config
+	flags.StringVar(&amp;amp;conf.HTTPAddr, &amp;#34;http-addr&amp;#34;, &amp;#34;127.0.0.1:10080&amp;#34;, &amp;#34;address to listen on&amp;#34;)
+	flags.DurationVar(&amp;amp;conf.HTTPShutdownTimeout, &amp;#34;http-shutdown-timeout&amp;#34;, 5*time.Second, &amp;#34;server shutdown timeout&amp;#34;)
+
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+
+	// TODO: define the handler, the routing, and wire the dependencies with the main context
+	mux := http.NewServeMux()
+	server := &amp;amp;http.Server{
+		Addr: conf.HTTPAddr,
+		Handler: mux,
+	}
+
+	errs := make(chan error, 1)
+	go func() {
+		log.Printf(&amp;#34;starting: addr %s&amp;#34;, server.Addr)
+		errs &amp;lt;- server.ListenAndServe()
+	}()
+
+	select {
+	case &amp;lt;-ctx.Done():
+		log.Println(&amp;#34;exiting...&amp;#34;)
+	case err := &amp;lt;-errs:
+		return err
+	}
+
+	// create new context because top-most one is already canceled
+	ctx, cancel := context.WithTimeout(context.Background(), conf.HTTPShutdownTimeout)
+	defer cancel()
+
+	return server.Shutdown(ctx)
+}
+&lt;/code>&lt;/pre>&lt;p>Of course, not every service requires an HTTP server, but the general idea stands.&lt;/p>
+&lt;hr>
+&lt;p>When Go will introduce &lt;a href="https://github.com/golang/go/issues/37255">&lt;code>signal.NotifyContext()&lt;/code>&lt;/a>, the signals handling in &lt;code>main()&lt;/code> function will be much smaller (we&amp;rsquo;re at go1.15rc1 as I&amp;rsquo;m writing that and the change hasn&amp;rsquo;t landed into the release yet).&lt;/p>
+&lt;p>I love how transparent is the flow here and how everything is scoped inside &lt;code>run()&lt;/code> function. This structure forces you to eliminate global state, making unit or integration testing &lt;em>almost trivial&lt;/em> — at least, in theory ;)&lt;/p>
+&lt;p>It might feel like too much of boilerplate code for a &amp;ldquo;small&amp;rdquo; service. In practice, though, I don&amp;rsquo;t recall any time this caused any real troubles to me. The beauty of Go is in explicitness.&lt;/p></description></item><item><title>Retrieve Location of macOS Device from Go</title><link>https://vladimir.varank.in/notes/2020/03/go-osx-core-location/</link><pubDate>Mon, 30 Mar 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/03/go-osx-core-location/</guid><description>&lt;p>Participating in self-isolation is more fun when you have toys to play. As a fun weekend project, I wanted to look at how one accesses macOS Location Services and get the geographic location of the device from Go.&lt;/p>
+&lt;p>To obtain the geographic location of a device on macOS, we use &lt;a href="https://developer.apple.com/documentation/corelocation?language=objc">Apple’s Core Location&lt;/a> framework. The framework is part of the OS, but it requires writting Objective-C (&lt;em>or Swift&lt;/em>). Thanks to Go&amp;rsquo;s cgo and because Objective-C is from the family of C languages, we can write a bridge between Objective-C and Go.&lt;/p></description></item><item><title>[]byte to string conversion</title><link>https://vladimir.varank.in/notes/2019/10/go-bytes-string-conversion/</link><pubDate>Tue, 08 Oct 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/10/go-bytes-string-conversion/</guid><description>&lt;p>Go has an old wiki page, titled &amp;ldquo;&lt;a href="https://github.com/golang/go/wiki/CompilerOptimizations">Compiler And Runtime Optimizations&lt;/a>&amp;rdquo;.&lt;/p>
+&lt;p>The part I like most there is different cases where compiler doesn&amp;rsquo;t allocate memory for &lt;code>string&lt;/code> to &lt;code>[]byte&lt;/code> conversions:&lt;/p>
+&lt;blockquote>
+&lt;p>For a map m of type &lt;code>map[string]T&lt;/code> and &lt;code>[]byte b&lt;/code>, &lt;code>m[string(b)]&lt;/code> doesn&amp;rsquo;t allocate (the temporary string copy of the byte slice isn&amp;rsquo;t made)&lt;/p>
+&lt;/blockquote>
+&lt;p>Turned out, since this wiki page was written, more similar optimisations were added to the compiler.&lt;/p>
+&lt;p>As it&amp;rsquo;s in Go 1.12+ the following cases are also listed in &lt;a href="https://github.com/golang/go/blob/release-branch.go1.12/src/runtime/string.go#L128-L153">&lt;code>runtime/string.go&lt;/code>&lt;/a>:&lt;/p>
+&lt;ul>
+&lt;li>Strings comcatenation&lt;/li>
+&lt;/ul>
+&lt;p>For the case &lt;code>&amp;quot;&amp;lt;&amp;quot; + string(b) + &amp;quot;&amp;gt;&amp;quot;&lt;/code>, where &lt;code>b&lt;/code> is &lt;code>[]byte&lt;/code> no extra copying of &lt;code>b&lt;/code> is needed.&lt;/p>
+&lt;ul>
+&lt;li>Comparison&lt;/li>
+&lt;/ul>
+&lt;pre tabindex="0">&lt;code>if string(b) == &amp;#34;foo&amp;#34; { ··· }
+&lt;/code>&lt;/pre>&lt;p>In the code above, &lt;code>b []byte&lt;/code> also won&amp;rsquo;t be copied.&lt;/p>
+&lt;hr>
+&lt;p>There are still cases where compiler can&amp;rsquo;t optimise the code for us. In some of those cases
+it&amp;rsquo;s fine to do string to bytes conversion using a so called &amp;ldquo;&lt;code>unsafe&lt;/code> trick&amp;rdquo; (accessing string&amp;rsquo;s underling
+data directly, with out copying the data from string to bytes and vice versa). One can find several
+ways of performing the trick, but none of them seems &amp;ldquo;the one that must be used&amp;rdquo;.&lt;/p>
+&lt;p>After years of episodic discussions, a collegue of mine assembled the list of different conserns and about
+the proper way of doing it (&lt;em>see &amp;ldquo;&lt;a href="https://groups.google.com/d/topic/golang-nuts/Zsfk-VMd_fU/discussion">unsafe conversion between string &amp;lt;-&amp;gt; []byte&lt;/a>&amp;rdquo; topic on golang-nuts forum&lt;/em>).
+Thanks to replies from Go team, our most valid way of doing it is following:&lt;/p>
+&lt;pre tabindex="0">&lt;code>// Refer to github.com/fmstephe/unsafeutil
+
+type stringHeader struct {
+	data unsafe.Pointer
+	stringLen int
+}
+
+type sliceHeader struct {
+	data unsafe.Pointer
+	sliceLen int
+	sliceCap int
+}
+
+func StringToBytes(s string) (b []byte) {
+	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;amp;s))
+	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;amp;b))
+	sliceHeader.data = stringHeader.data
+	sliceHeader.sliceLen = len(s)
+	sliceHeader.sliceCap = len(s)
+	return b
+}
+
+func BytesToString(b []byte) (s string) {
+	sliceHeader := (*sliceHeader)(unsafe.Pointer(&amp;amp;b))
+	stringHeader := (*stringHeader)(unsafe.Pointer(&amp;amp;s))
+	stringHeader.data = sliceHeader.data
+	stringHeader.stringLen = len(b)
+	return s
+}
+&lt;/code>&lt;/pre></description></item><item><title>Github Actions and GOPATH</title><link>https://vladimir.varank.in/notes/2019/09/github-actions-and-gopath/</link><pubDate>Thu, 19 Sep 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/09/github-actions-and-gopath/</guid><description>&lt;p>The other day I received my beta access to &lt;a href="https://github.com/features/actions">GitHub Actions&lt;/a>. To try them out I picked an existing pet project and created a &lt;em>workflow&lt;/em> using a Go project template provided by GitHub. As it&amp;rsquo;s in &lt;em>September 2019&lt;/em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.&lt;/p>
+&lt;p>My project is a &lt;em>classic Go service&lt;/em> ;) meaning: it uses vendoring and doesn&amp;rsquo;t use Go modules. So no need for &amp;ldquo;get dependencies&amp;rdquo; step. And it requires to be inside the &lt;code>GOPATH&lt;/code>. With that, the provided workflow needed some adjustment.&lt;/p>
+&lt;p>After some trials and errors, I&amp;rsquo;ve managed to make &lt;code>checkout&lt;/code> step to clone the repo into the correct destination inside the &lt;code>GOPATH&lt;/code>. Here is the final workflow:&lt;/p>
+&lt;pre tabindex="0">&lt;code>name: Run Go test
+on: [pull_request]
+jobs:
+ test:
+ strategy:
+ matrix:
+ go-version: [1.12.9]
+
+ runs-on: ubuntu-latest
+
+ steps:
+ - uses: actions/setup-go@v1
+ with:
+ go-version: ${{ matrix.go-version }}
+
+ - uses: actions/checkout@v1
+ with:
+ path: ./src/github.com/${{ github.repository }}
+ fetch-depth: 5
+
+ - run: make test
+ env:
+ GOPATH: ${{ runner.workspace }}
+&lt;/code>&lt;/pre>&lt;p>Note, how &lt;code>actions/checkout@v1&lt;/code> above uses custom &lt;code>path&lt;/code> input parameter. I set the path to &lt;code>./src/github.com/${{ github.repository }}&lt;/code>, so the project is checked out to &lt;code>src&lt;/code> directory in the runners&amp;rsquo;s workspace, which I later pass as the value of &lt;code>GOPATH&lt;/code> to the &amp;ldquo;make test&amp;rdquo; step. The leading dot in &lt;code>./src&lt;/code> seems very important — I&amp;rsquo;ve spent the majority of the time trying to figure out that part — refer to &lt;a href="https://github.com/actions/checkout/issues/41">this issue&lt;/a>.&lt;/p>
+&lt;p>&lt;a href="https://github.com/profefe/profefe/actions">See the workflow in action&lt;/a>.&lt;/p>
+&lt;p>To learn more about those &lt;code>${{ ··· }}&lt;/code> &amp;ldquo;macroses&amp;rdquo; I suggest looking at the Actions&amp;rsquo; &amp;ldquo;&lt;a href="https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions">Contexts and expression syntax&lt;/a>&amp;rdquo; documentation.&lt;/p></description></item><item><title>Go's net/http.Headers</title><link>https://vladimir.varank.in/notes/2019/09/go-http-headers/</link><pubDate>Wed, 04 Sep 2019 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2019/09/go-http-headers/</guid><description>&lt;p>One probably knows that &lt;code>net/http.Headers&lt;/code> is no more than &lt;code>map[string][]string&lt;/code> with extra specific methods. A usual way to initialize and populate such data-structure from an external representation is something like that:&lt;/p>
+&lt;pre tabindex="0">&lt;code>type Header map[string][]string
+
+func (h Header) Add(key, val string) {
+ if val == &amp;#34;&amp;#34; {
+ return
+ }
+ h[key] = append(h[key], val)
+}
+
+func main() {
+ h := make(Header)
+ h.Add(&amp;#34;Host&amp;#34;, &amp;#34;example.com&amp;#34;)
+ h.Add(&amp;#34;Via&amp;#34;, &amp;#34;a.example.com&amp;#34;)
+ h.Add(&amp;#34;Via&amp;#34;, &amp;#34;b.example.com&amp;#34;)
+}
+&lt;/code>&lt;/pre>&lt;p>From the code above, one can notice that we allocated a new slice of strings for every unique key that we added to headers. For things like HTTP headers, that&amp;rsquo;re automatically parsed for every incoming request, this bunch of tiny allocations is something we&amp;rsquo;d like to avoid.&lt;/p>
+&lt;p>I was curious to know if Go&amp;rsquo;s standard library cares about that.&lt;/p>
+&lt;p>Looking at the implementation of &lt;a href="https://golang.org/pkg/net/textproto/#Reader.ReadMIMEHeader">&lt;code>net/textproto.Reader.ReadMIMEHeader()&lt;/code>&lt;/a>, which is used in the standard
+HTTP server, or Go 1.13’s new &lt;a href="https://golang.org/pkg/net/http/#Header.Clone">&lt;code>net/http.Header.Clone()&lt;/code>&lt;/a>, it turned out they solve the problem quite elegantly.&lt;/p>
+&lt;p>We know that for a majority of cases, HTTP headers are an immutable key-value pair, where most of the keys have a single value. Instead of allocating a separate slice for a unique key, Go pre-allocates a continues slice for values and refers to a sub-slice of this slice for all keys.&lt;/p>
+&lt;p>Knowing that, we can refactor the initial &lt;code>Header.Add&lt;/code> as the following:&lt;/p>
+&lt;pre tabindex="0">&lt;code>type Header map[string][]string
+
+func (h Header) add(vv []string, key, val string) []string {
+ if val == &amp;#34;&amp;#34; { ··· }
+
+ // fast path for KV pair of a single value
+ if h[key] == nil {
+ vv = append(vv, value)
+ h[key] = vv[:1:1]
+ return vv[1:]
+ }
+
+ // slow path, when KV pair has two or more values
+ h[key] = append(h[key], val)
+ return vv
+}
+
+func main() {
+ h := make(Header)
+ // net/textprotocol pre-counts total number of request&amp;#39;s headers
+ // to allocate the slice of known capacity
+ vv := make([]string, 0)
+
+ vv = h.add(vv, &amp;#34;Host&amp;#34;, &amp;#34;example.com&amp;#34;)
+ vv = h.add(vv, &amp;#34;Via&amp;#34;, &amp;#34;a.example.com&amp;#34;)
+}
+&lt;/code>&lt;/pre>&lt;p>Note that we use &lt;code>vv[:1:1]&lt;/code> to create a &lt;a href="https://golang.org/ref/spec#Slice_expressions">sub-slice of a fixed capacity&lt;/a> (length 1, capacity 1).&lt;/p>
+&lt;p>If there is a KV-pair that has several values, e.g. &amp;ldquo;Via&amp;rdquo; header, &lt;code>Add&lt;/code> will allocate a separate slice for that key, doubling its capacity.&lt;/p></description></item></channel></rss>
