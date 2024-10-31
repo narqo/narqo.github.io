@@ -9,8 +9,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>Github Actions and GOPATH</h1></header><p>The other day I received my beta access to <a href=https://github.com/features/actions>GitHub Actions</a>. To try them out I picked an existing pet project and created a <em>workflow</em> using a Go project template provided by GitHub. As it&rsquo;s in <em>September 2019</em>, their template defines the sequence of steps: setup Go, checkout code, get dependencies, build. This is not exactly how I used to do it.</p><p>My project is a <em>classic Go service</em> ;) meaning: it uses vendoring and doesn&rsquo;t use Go modules. So no need for &ldquo;get dependencies&rdquo; step. And it requires to be inside the <code>GOPATH</code>. With that, the provided workflow needed some adjustment.</p><p>After some trials and errors, I&rsquo;ve managed to make <code>checkout</code> step to clone the repo into the correct destination inside the <code>GOPATH</code>. Here is the final workflow:</p><pre tabindex=0><code>name: Run Go test
 on: [pull_request]
 jobs:

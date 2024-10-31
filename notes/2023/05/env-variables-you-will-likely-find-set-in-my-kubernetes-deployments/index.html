@@ -5,8 +5,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>Env variables, you will (likely) find set in my Kubernetes deployments</h1></header><p>Kubernetes allows us to pass the values declared in a Pod&rsquo;s manifest, to its containers via environment variables (<a href=https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/>docs</a>). A typical situation, where I find this handy is when I run a Go application in a Pod.</p><p>As discussed in the previous note, out of the box, <a href=/notes/2023/01/go-runtime-vs-cfs-quota/>Go runtime isn&rsquo;t aware if it runs inside a container</a>. This can lead to confusing situations, when the runtime adjusts its behaviour, after observing the resources (CPU and memory) available on the cluster&rsquo;s node, instead of the resources, a developer or an operator restricted the deployment with.</p><p>We can help Go runtime to align its expectations with the reality, by passing the restrictions, specified in the manifest, down to the application, as env variables (note the <code>env</code> part in the yaml below):</p><pre tabindex=0><code>apiVersion: apps/v1
 kind: Deployment
 ···

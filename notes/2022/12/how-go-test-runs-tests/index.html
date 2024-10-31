@@ -11,8 +11,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>How "go test" runs tests</h1></header><p>When I run <code>go test ./foo</code>, Go toolchain performs several tricks under the hood.</p><p>First — skipping the intermediate preparation steps, like parsing the command line flags and checking for cached results — the toolchain generates a package <code>main</code>, which will run all <code>TestXxx</code> functions for a package under the test. Then it compiles a testing-binary, that includes the generated code, and the code of the package and its _test.go files.</p><p>The steps above are <em>somewhere</em> equivalent to running the following command:</p><pre tabindex=0><code>&gt; go test -c -o foo.test ./foo
 
 # The resulting &#34;foo.test&#34; is indeed an executable

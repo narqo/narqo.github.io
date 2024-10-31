@@ -5,8 +5,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>A real life use-case for generics in Go: API for client-side pagination</h1></header><p>Let&rsquo;s say we have a RESTful API for a general ledger, with the endpoints, that return a paginated collection of resources:</p><ol><li><code>GET /accounts</code>, retrieves a list of accounts, filtered and sorted by some query parameters;</li><li><code>GET /accounts/:uuid/transactions</code>, retrieves a list of transactions for account;</li><li><code>GET /postings</code>, retrieves a list of <a href=https://en.wikipedia.org/wiki/Double-entry_bookkeeping>postings</a> stored in the ledger.</li></ol><p><em>The actual structure and the response body are the implementation details, and aren&rsquo;t important here.</em></p><p>With Go 1.18 we may spec out the methods for a API client for this API as corresponding <code>ListSomething</code> methods, that return a generic type <code>Pager[T any]</code>:</p><pre tabindex=0><code>type LedgerAPIClient struct {
     // unexported fields
 }

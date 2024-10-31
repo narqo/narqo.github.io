@@ -11,8 +11,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>Go's net/http.Headers</h1></header><p>One probably knows that <code>net/http.Headers</code> is no more than <code>map[string][]string</code> with extra specific methods. A usual way to initialize and populate such data-structure from an external representation is something like that:</p><pre tabindex=0><code>type Header map[string][]string
 
 func (h Header) Add(key, val string) {

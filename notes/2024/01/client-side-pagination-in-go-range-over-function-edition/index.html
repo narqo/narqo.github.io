@@ -4,8 +4,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>Client-side pagination in Go (range-over function edition)</h1></header><p>In light of Go 1.22&rsquo;s experiment, that allows iterating over a function, I wanted to revisit my note from 2022 on <a href=/notes/2022/05/a-real-life-use-case-for-generics-in-go-api-for-client-side-pagination/>client-side pagination, using a generic iterator</a>, and get an idea on how the range-over function might help with the task. I will not delve into the details of the changes that Go brings. Refer to the &ldquo;<a href=https://go.dev/wiki/RangefuncExperiment>Rangefunc Experiment</a>&rdquo; on the Go wiki for more details. One only thing to mention, is that the executable must be built with the <code>GOEXPERIMENT=rangefunc</code> environment variable, to enable the experiment.</p><p>First, let&rsquo;s recap where the previous note landed. We have a client for an API, whose <code>List*</code> methods return a generic iterator type <code>Pager[T]</code>:</p><pre tabindex=0><code>package api
 
 type LedgerAPIClient { ··· }

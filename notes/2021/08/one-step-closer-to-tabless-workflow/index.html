@@ -14,8 +14,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>One step closer to "Tabless" workflow</h1></header><p>Many years ago I embraced &ldquo;tabless&rdquo; development workflow: I use buffers, when I&rsquo;m in Vim; I also switch tabs off in both Goland and VS Code, as the first thing after I install the IDEs to a new laptop.</p><p>I&rsquo;m trying the same with Firefox web-browser now:</p><figure><img src=/images/2021/firefox-91-2021-a.jpg alt="Tabless Firefox 91" width=1100></figure><ol><li><p>Enable <code>toolkit.legacyUserProfileCustomizations.stylesheets</code> switch in Firefox&rsquo;s config (via <code>about:config</code> page or inside <code>user.js</code>).</p></li><li><p>Place the styles below into <code>%PROFILE%/chrome/userChrome.css</code> (I pick the actual path to the profile directory from Firefox&rsquo;s <code>about:support</code> page).</p></li></ol><pre tabindex=0><code>// Hide the tabs.
 // Beware that hidding the tabs with &#34;display: none&#34; will ruine you browser&#39;s recent history,
 // I&#39;ve learned that in a hard way ;)

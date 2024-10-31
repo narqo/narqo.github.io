@@ -4,8 +4,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>k3s with Ubuntu Server (arm64) on Raspberry Pi 4</h1></header><p>As I&rsquo;ve <a href="https://twitter.com/tvii/status/1215927299557797893?s=20">twitted</a> recently, I&rsquo;m updating one of my Raspberry Pis to <a href=https://ubuntu.com/download/raspberry-pi>Ubuntu Server 19.10 (arm64)</a>.</p><h2 id=one-of-raspberry-pis>&ldquo;One of Raspberry Pis&rdquo;?</h2><p>My home cluster is four <a href="https://www.raspberrypi.org/products/raspberry-pi-4-model-b/?variant=raspberry-pi-4-model-b-2gb">Raspberry Pis 4 (2GB)</a>; all connected to my internet router through ethernet and
 powered with <a href="https://www.amazon.de/gp/product/B00PTLSH9G/ref=ppx_yo_dt_b_asin_title_o03_s00?ie=UTF8&amp;psc=1">60W 6 USB-ports charger</a>. All Pis build a small Kubernetes cluster that runs with <a href=https://k3s.io/>k3s</a>.</p><p>All by one Pis run on <a href=https://www.raspberrypi.org/downloads/raspbian/>Raspbian Buster Lite</a> and this setup&rsquo;s been working pretty well until I&rsquo;ve found out,
 <a href=https://www.aerospike.com/>Aerospike</a>, a database I required to run for a testing lab, only works on a 64-bit OS.</p><p>Luckily, <a href=https://ubuntu.com/download/raspberry-pi>Ubuntu Server has an arm64 version</a> built for Raspberry Pi. Thus, my working plan is to switch one Pi

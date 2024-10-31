@@ -12,8 +12,7 @@ Vladimir Varankin
 </a><a href=/notes/ class=site-nav-item-active>Notes</a>
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
-<a href=https://bsky.app/profile/vladimir.varank.in title="Ask me for an invite code (5)">Bluesky</a>
-<a href=https://twitter.com/tvii>Twitter</a>
+<a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
 <a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>Compile-time safety for enumerations in Go</h1></header><p>Last month, a colleague of mine asked how to reason about enumerated values (&ldquo;enums&rdquo;) in Go. They wanted to benefit from Go&rsquo;s type-safety and to prevent users from misusing the package.</p><p>For an imaginary example, that enumerates possible colours, the snippet below shows how we typically implement this:</p><pre tabindex=0><code>type Color string
 
 const (
