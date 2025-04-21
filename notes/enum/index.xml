@@ -73,4 +73,4 @@ func main() {
 OUTPUTS:
 ./prog.go:9:13: cannot use black (variable of type mycolor) as color.Color value in argument to PrintColor:
 mycolor does not implement color.Color (missing method xxxProtected)
-&lt;/code>&lt;/pre>&lt;p>&lt;em>Have you stumbled upon a scenario, where such strict compile-time checks for enumerated values was needed? Share your thoughts with me on &lt;a href="https://news.ycombinator.com/item?id=37703175">Hacker News&lt;/a>, &lt;a href="https://twitter.com/tvii/status/1707736145524600838">Twitter&lt;/a> or &lt;a href="https://bsky.app/profile/vladimir.varank.in/post/3kajuu4lrn52b">Bluesky&lt;/a>.&lt;/em>&lt;/p></description></item></channel></rss>
+&lt;/code>&lt;/pre>&lt;p>&lt;em>Have you stumbled upon a scenario, where such strict compile-time checks for enumerated values was needed? Share your thoughts with me on &lt;a href="https://news.ycombinator.com/item?id=37703175">Hacker News&lt;/a> or &lt;a href="https://bsky.app/profile/vladimir.varank.in/post/3kajuu4lrn52b">Bluesky&lt;/a>.&lt;/em>&lt;/p></description></item></channel></rss>

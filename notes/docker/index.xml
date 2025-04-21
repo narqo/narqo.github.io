@@ -76,15 +76,13 @@ jobs:
 &lt;pre tabindex="0">&lt;code>- docker container run --rm --privileged multiarch/qemu-user-static --reset -p yes
 &lt;/code>&lt;/pre>&lt;p>Under the hood, the container runs a &lt;a href="https://raw.githubusercontent.com/qemu/qemu/master/scripts/qemu-binfmt-conf.sh">shell script from QEMU project&lt;/a>, that registers the emulator as an executor of binaries from the external platforms.&lt;/p>
 &lt;blockquote>
-&lt;p>If you think, that running a docker container to do the manipulations with the host&amp;rsquo;s OS looks weird, well&amp;hellip; I can&amp;rsquo;t agree more. Probably, a better approach would be to install &lt;a href="https://packages.ubuntu.com/bionic/qemu-user-static">qemu-user-static&lt;/a>, which would do the proper setup. Unfortunately, the current package&amp;rsquo;s version for Ubuntu Bionic doesn&amp;rsquo;t do the registration as we need it. I.e. its post-install doesn&amp;rsquo;t add the &lt;code>&amp;quot;F&amp;quot;&lt;/code> flag (&amp;ldquo;fix binaries&amp;rdquo;), which is crucial for our goal. Let&amp;rsquo;s just agree,that docker-run will do ok for the demonstrational purpose.&lt;/p>
-&lt;/blockquote>
+&lt;p>If you think, that running a docker container to do the manipulations with the host&amp;rsquo;s OS looks weird, well&amp;hellip; I can&amp;rsquo;t agree more. Probably, a better approach would be to install &lt;a href="https://packages.ubuntu.com/bionic/qemu-user-static">qemu-user-static&lt;/a>, which would do the proper setup. Unfortunately, the current package&amp;rsquo;s version for Ubuntu Bionic doesn&amp;rsquo;t do the registration as we need it. I.e. its post-install doesn&amp;rsquo;t add the &lt;code>&amp;quot;F&amp;quot;&lt;/code> flag (&amp;ldquo;fix binaries&amp;rdquo;), which is crucial for our goal. Let&amp;rsquo;s just agree,that docker-run will do ok for the demonstrational purpose.&lt;/p>&lt;/blockquote>
 &lt;pre tabindex="0">&lt;code>- docker container run -d --rm --name buildkitd --privileged moby/buildkit:latest
 - sudo docker container cp buildkitd:/usr/bin/buildctl /usr/local/bin/
 - export BUILDKIT_HOST=&amp;#34;docker-container://buildkitd&amp;#34;
 &lt;/code>&lt;/pre>&lt;p>This is another &amp;ldquo;docker-run&amp;rsquo;ism&amp;rdquo;. We start BuildKit&amp;rsquo;s &lt;code>buildkitd&lt;/code> daemon inside the container, attaching it to the Docker daemon that runs on the host (&amp;ldquo;privileged&amp;rdquo; mode). Next, we copy &lt;code>buildctl&lt;/code> binary from the container to the host system and set &lt;code>BUILDKIT_HOST&lt;/code> environment variable, so &lt;code>buildctl&lt;/code> knew where its daemon runs.&lt;/p>
 &lt;blockquote>
-&lt;p>Alternatively, we could install BuildKit from GitHub and run the daemon directly on the build host. YOLO.&lt;/p>
-&lt;/blockquote>
+&lt;p>Alternatively, we could install BuildKit from GitHub and run the daemon directly on the build host. YOLO.&lt;/p>&lt;/blockquote>
 &lt;pre tabindex="0">&lt;code>before_deploy:
  - echo &amp;#34;$DOCKER_PASSWORD&amp;#34; | docker login --username &amp;#34;$DOCKER_USERNAME&amp;#34; --password-stdin
 &lt;/code>&lt;/pre>&lt;p>To be able to push the images to the registry, we need to log in providing Docker credentials to host&amp;rsquo;s Docker daemon. The credentials are set as Travis CI&amp;rsquo;s encrypted environment variables ([refer to Travis CI docs])](&lt;a href="https://docs.travis-ci.com/user/environment-variables/))">https://docs.travis-ci.com/user/environment-variables/))&lt;/a>.&lt;/p>
