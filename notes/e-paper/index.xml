@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>E-Paper on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/e-paper/</link><description>Recent content in E-Paper on Vladimir Varankin</description><generator>Hugo</generator><language>en</language><lastBuildDate>Tue, 14 Jul 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/e-paper/index.xml" rel="self" type="application/rss+xml"/><item><title>Waveshare ESP8266 Driver Board Pins Mapping</title><link>https://vladimir.varank.in/notes/2020/07/waveshare-esp8266-driver-board-pins-mapping/</link><pubDate>Tue, 14 Jul 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/07/waveshare-esp8266-driver-board-pins-mapping/</guid><description>&lt;p>I&amp;rsquo;ve been playing with an &lt;a href="https://www.waveshare.com/product/iot-communication/short-range-wireless/wifi/e-paper-esp8266-driver-board.htm">e-paper ESP866 Driver Board&lt;/a>, and a &lt;a href="https://www.waveshare.com/2.7inch-e-Paper.htm">2.7&amp;quot; E-Ink display&lt;/a> from Waveshare. Arduino C++ looks manageable. One strange thing, though. In both board’s documentation and &lt;a href="https://github.com/ZinggJM/GxEPD2">GxEPD2&lt;/a> library’s examples, they say the display is connected to pins as BUSY → GPIO16, RST → GPIO5, DC → GPIO4, CS → GPIO15. This mapping seems wrong.&lt;/p>
-&lt;p>After digging through the code examples from &lt;a href="https://github.com/ZinggJM/GxEPD2">Waveshare’s Wiki&lt;/a>, the correct mapping is the following:&lt;/p>
-&lt;p>BUSY → GPIO5,
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>E-Paper on Vladimir Varankin</title><link>https://vladimir.varank.in/notes/e-paper/</link><description>Recent content in E-Paper on Vladimir Varankin</description><generator>Hugo</generator><language>en</language><lastBuildDate>Tue, 14 Jul 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://vladimir.varank.in/notes/e-paper/index.xml" rel="self" type="application/rss+xml"/><item><title>Waveshare ESP8266 Driver Board Pins Mapping</title><link>https://vladimir.varank.in/notes/2020/07/waveshare-esp8266-driver-board-pins-mapping/</link><pubDate>Tue, 14 Jul 2020 00:00:00 +0000</pubDate><guid>https://vladimir.varank.in/notes/2020/07/waveshare-esp8266-driver-board-pins-mapping/</guid><description>&lt;p&gt;I&amp;rsquo;ve been playing with an &lt;a href="https://www.waveshare.com/product/iot-communication/short-range-wireless/wifi/e-paper-esp8266-driver-board.htm"&gt;e-paper ESP866 Driver Board&lt;/a&gt;, and a &lt;a href="https://www.waveshare.com/2.7inch-e-Paper.htm"&gt;2.7&amp;quot; E-Ink display&lt;/a&gt; from Waveshare. Arduino C++ looks manageable. One strange thing, though. In both board’s documentation and &lt;a href="https://github.com/ZinggJM/GxEPD2"&gt;GxEPD2&lt;/a&gt; library’s examples, they say the display is connected to pins as BUSY → GPIO16, RST → GPIO5, DC → GPIO4, CS → GPIO15. This mapping seems wrong.&lt;/p&gt;
+&lt;p&gt;After digging through the code examples from &lt;a href="https://github.com/ZinggJM/GxEPD2"&gt;Waveshare’s Wiki&lt;/a&gt;, the correct mapping is the following:&lt;/p&gt;
+&lt;p&gt;BUSY → GPIO5,
 RST → GPIO2,
 DC → GPIO4,
-CS → GPIO15&lt;/p>
-&lt;p>That&amp;rsquo;s how the initialisation of the main &lt;code>GxEPD2&lt;/code> class for my 2.7&amp;quot; display looks like now:&lt;/p>
-&lt;pre tabindex="0">&lt;code>#define ENABLE_GxEPD2_GFX 0
+CS → GPIO15&lt;/p&gt;
+&lt;p&gt;That&amp;rsquo;s how the initialisation of the main &lt;code&gt;GxEPD2&lt;/code&gt; class for my 2.7&amp;quot; display looks like now:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;#define ENABLE_GxEPD2_GFX 0
 #include &amp;lt;GxEPD2_BW.h&amp;gt;
 
 // mapping of Waveshare e-Paper ESP8266 Driver Board
 GxEPD2_BW&amp;lt;GxEPD2_270, GxEPD2_270::HEIGHT&amp;gt; display(GxEPD2_270(/*CS=15*/ SS, /*DC=4*/ 4, /*RST=2*/ 2, /*BUSY=5*/ 5));
-&lt;/code>&lt;/pre></description></item></channel></rss>
+&lt;/code&gt;&lt;/pre&gt;</description></item></channel></rss>
