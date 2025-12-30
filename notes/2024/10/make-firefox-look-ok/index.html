@@ -4,7 +4,7 @@ Vladimir Varankin
 <a href=/publications/>Publications</a>
 <span>· </span><a href=https://github.com/narqo>GitHub</a>
 <a href=https://bsky.app/profile/vladimir.varank.in>Bluesky</a>
-<a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>Make Firefox look OK</h1></header><p>When I open a freshly installed Firefox browser, it does not look good.</p><figure><img src=/images/2024/firefox-1.png alt="Firefox 131 on macOS" width=1100><figcaption><p>(Before) Firefox 131 on macOS</p></figcaption></figure><p>It needs a bit of fine-tuning to look better. When you spend much of your day inside the browser window, the browser needs to become invisible.</p><figure><img src=/images/2024/firefox-2.png alt="A better looking Firefox" width=1100><figcaption><p>(After) Same Firefox but better looking</p></figcaption></figure><p>These are the steps to make it look OK:</p><p><strong>1. Enable &ldquo;compact&rdquo; mode</strong></p><p>In <code>about:config</code>, set the <code>browser.compactmode.show</code> setting. This will show the otherwise hidden, &ldquo;Compact&rdquo; density mode in the &ldquo;Customize toolbar&rdquo; menu. Set the density mode to compact.</p><p><strong>2. Disable favicons</strong></p><p>Disable the <code>browser.chrome.site_icons</code> setting. This removes the site icons from the browser&rsquo;s tabs.</p><p><strong>3. Disable tabs preview</strong></p><p>Disable the <code>browser.tabs.hoverPreview.enabled</code> and <code>browser.tabs.hoverPreview.showThumbnails</code> settings. This disables the previews when one hovers over the tabs, and just show the tooltip.</p><p><strong>4. Enable userChrome.css</strong></p><p>Activate the <code>toolkit.legacyUserProfileCustomizations.stylesheets</code> setting.</p><p>Then, create a <code>userChrome.css</code> file in the Firefox&rsquo;s current profile directory, <code>%PROFILE%/chrome/userChrome.css</code>, and add the styles:</p><pre tabindex=0><code>:root {
+<a href=https://t.me/varankinv>Telegram</a></nav><main class=site-content><header class=section-head><h1>Make Firefox look OK</h1></header><p>When I open a freshly installed Firefox browser, it does not look good.</p><figure><img src=/images/2024/firefox-1.png alt="Firefox 131 on macOS" width=1100><figcaption><p>Firefox 131 on macOS</p></figcaption></figure><p>It needs a bit of fine-tuning to look better. When you spend much of your day inside the browser window, the browser needs to become invisible.</p><p><em>Since I posted the original note, Firefox added a native support for vertical tabs. That&rsquo;s the mode I&rsquo;m using now. See the updates in the end of this post for the latest styles.</em></p><figure><img src=/images/2025/firefox-2025-0.png alt="Firefox 146, late 2025" width=550><figcaption><p>Firefox 146, late 2025</p></figcaption></figure><hr><p>These are the steps to make it look OK:</p><p><strong>1. Enable &ldquo;compact&rdquo; mode</strong></p><p>In <code>about:config</code>, set the <code>browser.compactmode.show</code> setting. This will show the otherwise hidden, &ldquo;Compact&rdquo; density mode in the &ldquo;Customize toolbar&rdquo; menu. Set the density mode to compact.</p><p><strong>2. Disable favicons</strong></p><p>Disable the <code>browser.chrome.site_icons</code> setting. This removes the site icons from the browser&rsquo;s tabs.</p><p><strong>3. Disable tabs preview</strong></p><p>Disable the <code>browser.tabs.hoverPreview.enabled</code> and <code>browser.tabs.hoverPreview.showThumbnails</code> settings. This disables the previews when one hovers over the tabs, and just show the tooltip.</p><p><strong>4. Enable userChrome.css</strong></p><p>Activate the <code>toolkit.legacyUserProfileCustomizations.stylesheets</code> setting.</p><p>Then, create a <code>userChrome.css</code> file in the Firefox&rsquo;s current profile directory, <code>%PROFILE%/chrome/userChrome.css</code>, and add the styles:</p><pre tabindex=0><code>:root {
     &amp;[uidensity=compact] {
         --tab-min-height: 24px !important;
     }
@@ -42,4 +42,77 @@ Vladimir Varankin
 #navigator-toolbox .titlebar-spacer {
     width: 10px !important;
 }
-</code></pre><p><strong>5. Install a good light theme</strong></p><p>I use the &ldquo;<a href=https://addons.mozilla.org/firefox/addon/safari-macos-monterey-light/>Safari - MacOS Monterey Light</a>&rdquo; theme, which is very minimal and fits nicely into macOS.</p><footer class=meta><time datetime=2024-10-09T12:00:00Z>October 9, 2024</time><a class=tag href=/notes/firefox/>Firefox</a></footer><section class="meta meta-topics-list"><header class=meta-topics-list-title><h3>All topics</h3></header><a class=tag href=https://vladimir.varank.in/notes/apple/>Apple</a><a class=tag href=https://vladimir.varank.in/notes/arduino/>Arduino</a><a class=tag href=https://vladimir.varank.in/notes/arm64/>Arm64</a><a class=tag href=https://vladimir.varank.in/notes/askme/>Askme</a><a class=tag href=https://vladimir.varank.in/notes/aws/>Aws</a><a class=tag href=https://vladimir.varank.in/notes/berlin/>Berlin</a><a class=tag href=https://vladimir.varank.in/notes/bookmarks/>Bookmarks</a><a class=tag href=https://vladimir.varank.in/notes/buildkit/>Buildkit</a><a class=tag href=https://vladimir.varank.in/notes/cgo/>Cgo</a><a class=tag href=https://vladimir.varank.in/notes/coffee/>Coffee</a><a class=tag href=https://vladimir.varank.in/notes/continuous-profiling/>Continuous Profiling</a><a class=tag href=https://vladimir.varank.in/notes/covid-19/>COVID-19</a><a class=tag href=https://vladimir.varank.in/notes/design/>Design</a><a class=tag href=https://vladimir.varank.in/notes/docker/>Docker</a><a class=tag href=https://vladimir.varank.in/notes/dynamodb/>Dynamodb</a><a class=tag href=https://vladimir.varank.in/notes/e-paper/>E-Paper</a><a class=tag href=https://vladimir.varank.in/notes/english/>English</a><a class=tag href=https://vladimir.varank.in/notes/enum/>Enum</a><a class=tag href=https://vladimir.varank.in/notes/esp8266/>Esp8266</a><a class=tag href=https://vladimir.varank.in/notes/firefox/>Firefox</a><a class=tag href=https://vladimir.varank.in/notes/github-actions/>Github Actions</a><a class=tag href=https://vladimir.varank.in/notes/go/>Go</a><a class=tag href=https://vladimir.varank.in/notes/google/>Google</a><a class=tag href=https://vladimir.varank.in/notes/graphql/>Graphql</a><a class=tag href=https://vladimir.varank.in/notes/homelab/>Homelab</a><a class=tag href=https://vladimir.varank.in/notes/ipv6/>IPv6</a><a class=tag href=https://vladimir.varank.in/notes/k3s/>K3s</a><a class=tag href=https://vladimir.varank.in/notes/kubernetes/>Kubernetes</a><a class=tag href=https://vladimir.varank.in/notes/linux/>Linux</a><a class=tag href=https://vladimir.varank.in/notes/macos/>Macos</a><a class=tag href=https://vladimir.varank.in/notes/material-design/>Material Design</a><a class=tag href=https://vladimir.varank.in/notes/mdns/>MDNS</a><a class=tag href=https://vladimir.varank.in/notes/music/>Music</a><a class=tag href=https://vladimir.varank.in/notes/ndppd/>Ndppd</a><a class=tag href=https://vladimir.varank.in/notes/neondatabase/>Neondatabase</a><a class=tag href=https://vladimir.varank.in/notes/objective-c/>Objective-C</a><a class=tag href=https://vladimir.varank.in/notes/passkeys/>Passkeys</a><a class=tag href=https://vladimir.varank.in/notes/postgresql/>PostgreSQL</a><a class=tag href=https://vladimir.varank.in/notes/pprof/>Pprof</a><a class=tag href=https://vladimir.varank.in/notes/profefe/>Profefe</a><a class=tag href=https://vladimir.varank.in/notes/random/>Random</a><a class=tag href=https://vladimir.varank.in/notes/raspberry-pi/>Raspberry Pi</a><a class=tag href=https://vladimir.varank.in/notes/rust/>Rust</a><a class=tag href=https://vladimir.varank.in/notes/travis-ci/>Travis Ci</a><a class=tag href=https://vladimir.varank.in/notes/vs-code/>Vs Code</a><a class=tag href=https://vladimir.varank.in/notes/waveshare/>Waveshare</a><a class=tag href=https://vladimir.varank.in/notes/%CE%BC-benchmarks/>Μ-Benchmarks</a></section></main><footer class=site-footer>#НетВойне<br><a href=mailto:vladimir@varank.in>vladimir@varank.in</a></footer><img src=https://c.varank.in/hello/*https://vladimir.varank.in/notes/2024/10/make-firefox-look-ok/ style=position:absolute;left:-9999px decoding=async alt></body></html>
+</code></pre><p><strong>5. Install a good light theme</strong></p><p>I use the &ldquo;<a href=https://addons.mozilla.org/firefox/addon/safari-macos-monterey-light/>Safari - MacOS Monterey Light</a>&rdquo; theme, which is very minimal and fits nicely into macOS.</p><hr><p><strong>Update 2025-07</strong> Lately, inspired by Zen browser, I&rsquo;ve revisited the styling to make the browser even more compact and minimal.</p><p>One thing that I really don&rsquo;t like about Zen browser, is that it — similar to Arc and similar to Opera before both of them — frames the whole browser window with an annoying border 🖼️. This looks sexy on screenshots. But this makes no sense when a browser window is expanded to fill the whole screen.</p><p>In contrast, this is how my Firefox looks now:</p><figure><img src=/images/2025/firefox-2025-1.png alt="Firefox with no URL bar, and vertical tabs enabled" width=1100><figcaption><p>Firefox with no URL bar, and vertical tabs enabled</p></figcaption></figure><figure><img src=/images/2025/firefox-2025-2.png alt="The URL bar is only visible when it is in focus" width=1100><figcaption><p>The URL bar is only visible when it is in focus</p></figcaption></figure><p>The styles from the <code>userChrome.css</code> as of late 2025:</p><pre tabindex=0><code>:root {
+    --tab-selected-bgcolor: rgba(0,0,0,0.09) !important;
+    --toolbar-field-background-color: rgb(255,255,255) !important;
+
+    --tab-block-margin: 0 !important;
+}
+
+#tabbrowser-tabs .tab-background:is([selected], [multiselected]) {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+#tabbrowser-tabs {
+    &amp; .tabbrowser-tab:not(:hover) .tab-close-button {
+        display: none;
+    }
+
+    &amp;[orient=&#34;vertical&#34;] .tabbrowser-tab {
+        padding-block: 2px !important;
+
+        &amp;:first-of-type {
+            padding-block-start: 6px !important;
+        }
+    }
+
+    .tab-close-button {
+        width: 18px !important;
+        height: 18px !important;
+        padding: 3px !important;
+    }
+}
+
+/* Hide URL bar, unless it is in focus */
+:root:not([customizing]) {
+    #nav-bar {
+        margin-top: -30px !important;
+
+        &amp;:has(#urlbar[focused]) {
+            margin-top: unset !important;
+        }
+
+    }
+}
+
+/* Round the corners of the tab content */
+:root:not([inDOMFullscreen], [chromehidden~=&#34;toolbar&#34;]) {
+    #tabbrowser-tabbox browser:not(.devtools-toolbox-bottom-iframe, .devtools-toolbox-side-iframe) {
+        border-radius: 6px;
+        clip-path: inset(0 round 8px);
+    }
+}
+
+/* Render tab group labels vertically */
+.tab-group-label-container {
+    #tabbrowser-tabs[orient=&#34;vertical&#34;] &amp; {
+        margin-block-start: unset !important;
+    }
+}
+.tab-group-label {
+    #tabbrowser-tabs[orient=&#34;vertical&#34;]:not([expanded]) &amp; {
+        font-size-adjust: unset !important;
+        height: unset !important;
+        max-height: 96px !important;
+        margin-inline: unset !important;
+        margin-block: calc(var(--tab-inner-inline-margin) + (var(--tab-collapsed-background-width) - 24px) / 2) !important;
+        writing-mode: sideways-lr !important;
+    }
+}
+.tab-group-label-hover-highlight {
+    #tabbrowser-tabs[orient=&#34;vertical&#34;] &amp; {
+        margin-inline: unset !important;
+    }
+}
+</code></pre><footer class=meta><time datetime=2024-10-09T12:00:00Z>October 9, 2024</time><a class=tag href=/notes/firefox/>Firefox</a></footer><section class="meta meta-topics-list"><header class=meta-topics-list-title><h3>All topics</h3></header><a class=tag href=https://vladimir.varank.in/notes/apple/>Apple</a><a class=tag href=https://vladimir.varank.in/notes/arduino/>Arduino</a><a class=tag href=https://vladimir.varank.in/notes/arm64/>Arm64</a><a class=tag href=https://vladimir.varank.in/notes/askme/>Askme</a><a class=tag href=https://vladimir.varank.in/notes/aws/>Aws</a><a class=tag href=https://vladimir.varank.in/notes/berlin/>Berlin</a><a class=tag href=https://vladimir.varank.in/notes/bookmarks/>Bookmarks</a><a class=tag href=https://vladimir.varank.in/notes/buildkit/>Buildkit</a><a class=tag href=https://vladimir.varank.in/notes/cgo/>Cgo</a><a class=tag href=https://vladimir.varank.in/notes/coffee/>Coffee</a><a class=tag href=https://vladimir.varank.in/notes/continuous-profiling/>Continuous Profiling</a><a class=tag href=https://vladimir.varank.in/notes/covid-19/>COVID-19</a><a class=tag href=https://vladimir.varank.in/notes/design/>Design</a><a class=tag href=https://vladimir.varank.in/notes/docker/>Docker</a><a class=tag href=https://vladimir.varank.in/notes/dynamodb/>Dynamodb</a><a class=tag href=https://vladimir.varank.in/notes/e-paper/>E-Paper</a><a class=tag href=https://vladimir.varank.in/notes/english/>English</a><a class=tag href=https://vladimir.varank.in/notes/enum/>Enum</a><a class=tag href=https://vladimir.varank.in/notes/esp8266/>Esp8266</a><a class=tag href=https://vladimir.varank.in/notes/firefox/>Firefox</a><a class=tag href=https://vladimir.varank.in/notes/github-actions/>Github Actions</a><a class=tag href=https://vladimir.varank.in/notes/go/>Go</a><a class=tag href=https://vladimir.varank.in/notes/google/>Google</a><a class=tag href=https://vladimir.varank.in/notes/graphql/>Graphql</a><a class=tag href=https://vladimir.varank.in/notes/homelab/>Homelab</a><a class=tag href=https://vladimir.varank.in/notes/ipv6/>IPv6</a><a class=tag href=https://vladimir.varank.in/notes/k3s/>K3s</a><a class=tag href=https://vladimir.varank.in/notes/kubernetes/>Kubernetes</a><a class=tag href=https://vladimir.varank.in/notes/linux/>Linux</a><a class=tag href=https://vladimir.varank.in/notes/macos/>Macos</a><a class=tag href=https://vladimir.varank.in/notes/material-design/>Material Design</a><a class=tag href=https://vladimir.varank.in/notes/mdns/>MDNS</a><a class=tag href=https://vladimir.varank.in/notes/music/>Music</a><a class=tag href=https://vladimir.varank.in/notes/ndppd/>Ndppd</a><a class=tag href=https://vladimir.varank.in/notes/neondatabase/>Neondatabase</a><a class=tag href=https://vladimir.varank.in/notes/objective-c/>Objective-C</a><a class=tag href=https://vladimir.varank.in/notes/passkeys/>Passkeys</a><a class=tag href=https://vladimir.varank.in/notes/postgresql/>Postgresql</a><a class=tag href=https://vladimir.varank.in/notes/pprof/>Pprof</a><a class=tag href=https://vladimir.varank.in/notes/profefe/>Profefe</a><a class=tag href=https://vladimir.varank.in/notes/random/>Random</a><a class=tag href=https://vladimir.varank.in/notes/raspberry-pi/>Raspberry Pi</a><a class=tag href=https://vladimir.varank.in/notes/rust/>Rust</a><a class=tag href=https://vladimir.varank.in/notes/travis-ci/>Travis Ci</a><a class=tag href=https://vladimir.varank.in/notes/vs-code/>Vs Code</a><a class=tag href=https://vladimir.varank.in/notes/waveshare/>Waveshare</a><a class=tag href=https://vladimir.varank.in/notes/%CE%BC-benchmarks/>Μ-Benchmarks</a></section></main><footer class=site-footer>#НетВойне<br><a href=mailto:vladimir@varank.in>vladimir@varank.in</a></footer><img src=https://c.varank.in/hello/*https://vladimir.varank.in/notes/2024/10/make-firefox-look-ok/ style=position:absolute;left:-9999px decoding=async alt></body></html>
